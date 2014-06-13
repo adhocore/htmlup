@@ -12,7 +12,7 @@ It supports most of the markdown as in [specs](https://github.com/adam-p/markdow
 
 - include HtmlUp (`include '/path/to/HtmlUp.php';`)
 - `echo new HtmlUp($markdownText);`
-- for more style
+- for more styles see `example.php`
 
 
 # features
