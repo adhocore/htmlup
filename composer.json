@@ -1,0 +1,14 @@
+{
+    "name": "adhocore/htmlup",
+    "description": "HTML from Markdown.",
+    "keywords": ["htmlup", "markdown"],
+    "homepage": "https://github.com/adhocore/htmlup",
+    "type": "library",
+    "license": "WTFPL",
+    "authors": [
+        {
+            "name": "Jitendra Adhikari",
+            "email": "jiten.adhikary@gmail.com"
+        }
+    ]
+}
