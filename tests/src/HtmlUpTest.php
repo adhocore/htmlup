@@ -29,15 +29,18 @@ class HtmlUpTest extends PHPUnit_Framework_TestCase
         return array(
             array(
                 'Atx Header',
-'# HelloH1
-## HelloH2',
+                $this->assemble('# HelloH1', '## HelloH2'),
                 '<h1>HelloH1</h1><h2>HelloH2</h2>'
             ),
             array(
                 'Unordered List',
-'- Hello
-* HelloAgain',
+                $this->assemble('- Hello', '* HelloAgain'),
                 '<ul><li>Hello</li><li>HelloAgain</li></ul>'
+            ),
+            array(
+                'Ordered List',
+                $this->assemble('1. Hello', '2. HelloAgain'),
+                '<ol><li>Hello</li><li>HelloAgain</li></ol>'
             ),
             array(
                 'H8 is Paragraph',
@@ -46,12 +49,7 @@ class HtmlUpTest extends PHPUnit_Framework_TestCase
             ),
             array(
                 'Horizontal Rule',
-'
-
-***
-
-___
-',
+                $this->assemble('', '***', '', '___'),
                 '<hr /><hr />'
             ),
         );
@@ -75,5 +73,10 @@ ___
         );
 
         return trim($markup);
+    }
+
+    private function assemble()
+    {
+        return implode("\n", func_get_args());
     }
 }
