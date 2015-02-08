@@ -1,6 +1,6 @@
 <?php
 
-include 'HtmlUp.php';
+include __DIR__.'/../src/HtmlUp.php';
 
 $markdown = <<<'MD'
 
