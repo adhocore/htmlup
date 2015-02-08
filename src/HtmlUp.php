@@ -1,16 +1,16 @@
-<?php 
+<?php
 
 /**
  * HtmlUp - A **lightweight** and **fast** `markdown` to HTML Parser
  *
  * Supports most of the markdown specs except deep nested elements.
- * Check readme.md for the details of its features and limitations. 
+ * Check readme.md for the details of its features and limitations.
  * **Crazy Part:** it is _single class_, _single function_ library.
  *                 because hey! construct() and toString() are magics
- * 
+ *
  * @author adhocore | Jitendra Adhikari <jiten.adhikary@gmail.com>
  * @copyright (c) 2014 Jitendra Adhikari
- * 
+ *
  */
 class HtmlUp
 {
@@ -18,15 +18,16 @@ class HtmlUp
 
     private $Pointer = -1;
 
-    public function __construct($markdown) 
+    public function __construct($markdown)
     {
-        $this->Lines = 
+        // some normalisations
+        $this->Lines =
             explode("\n",   # the lines !
                 trim(       # trim trailing \n
-                    str_replace(array("\r\n", "\r", ), "\n", # use standard newline
+                    str_replace(array("\r\n", "\r"), "\n",   # use standard newline
                         str_replace("\t", '    ', $markdown) # use 4 spaces for tab
                     ), "\n"
-                ) . "\n"    # ensure atleast one \n
+                )."\n"      # ensure atleast one \n
             );
 
         unset($markdown);
@@ -39,72 +40,75 @@ class HtmlUp
 
     public function parse()
     {
-        if (empty($this->Lines)) 
+        if (empty($this->Lines)) {
             return '';
-        
+        }
+
         $markup = '';
         $nestLevel = $quoteLevel = 0;
         $indent = $nextIndent = 0;
         $stackList = $stackBlock = array();
         $lastPointer = count($this->Lines) - 1;
-        
+
         while (isset($this->Lines[++$this->Pointer])) {
             $line = $this->Lines[$this->Pointer];
             $trimmedLine = trim($line);
+
+            // flush stacks at the end of block
             if (empty($trimmedLine)) {
-                while($stackList) {
+                while ($stackList) {
                     $markup .= array_pop($stackList);
                 }
-                while($stackBlock) {
+                while ($stackBlock) {
                     $markup .= array_pop($stackBlock);
                 }
-                    
+
                 $inList = $inQuote = $inPara = null;
-                $nestLevel = $quoteLevel = 0; 
+                $nestLevel = $quoteLevel = 0;
                 continue;
             }
-            
-            # raw html
-            if ( preg_match('/^<\/?\w.*?\/?>/', $trimmedLine) ) {
+
+            // raw html
+            if (preg_match('/^<\/?\w.*?\/?>/', $trimmedLine)) {
                 $markup .= "\n$line";
                 continue;
             }
 
-            $nextLine = $this->Pointer < $lastPointer 
+            $nextLine = $this->Pointer < $lastPointer
                 ? $this->Lines[$this->Pointer+1]
                 : null;
             $trimmedNextLine = $nextLine ? trim($nextLine) : null;
 
-            $indent = strlen($line) - strlen(ltrim($line));;            
+            $indent = strlen($line) - strlen(ltrim($line));
             $nextIndent = $nextLine ? strlen($nextLine) - strlen(ltrim($nextLine)) : 0;
-            
+
             $nextMark1 = isset($trimmedNextLine[0]) ? $trimmedNextLine[0] : null;
             $nextMark12 = $trimmedNextLine ? substr($trimmedNextLine, 0, 2) : null;
 
-            # blockquote
-            if ( preg_match('~^\s*(>+)\s+~', $line, $quoteMatch) ){
+            // blockquote
+            if (preg_match('~^\s*(>+)\s+~', $line, $quoteMatch)) {
                 $line = substr($line, strlen($quoteMatch[0]));
                 $trimmedLine = trim($line);
-                if (empty($inQuote) OR $quoteLevel < strlen($quoteMatch[1])) {
+                if (empty($inQuote) or $quoteLevel < strlen($quoteMatch[1])) {
                     $markup .= "\n<blockquote>";
                     $stackBlock[] = "\n</blockquote>";
-                    $quoteLevel++;                    
+                    $quoteLevel++;
                 }
                 $inQuote = true;
-            } 
-            
+            }
+
             $mark1 = $trimmedLine[0];
             $mark12 = substr($trimmedLine, 0, 2);
-            
+
             // atx
             if ($mark1 === '#') {
                 $level = strlen($trimmedLine) - strlen(ltrim($trimmedLine, '#'));
-                $markup .= "\n<h{$level}>" . ltrim($trimmedLine, '# ') . "</h{$level}>";
-                continue;    
+                $markup .= "\n<h{$level}>".ltrim($trimmedLine, '# ')."</h{$level}>";
+                continue;
             }
 
             // setext
-            if ( preg_match('~^\s*(={3,}|-{3,})\s*$~', $nextLine) ) {
+            if (preg_match('~^\s*(={3,}|-{3,})\s*$~', $nextLine)) {
                 $level = trim($nextLine, '- ') === '' ? '2' : '1';
                 $markup .= "\n<h{$level}>{$trimmedLine}</h{$level}>";
                 $this->Pointer++;
@@ -112,20 +116,22 @@ class HtmlUp
             }
 
             // fence code
-            if ($codeBlock = preg_match('/^```\s*([\w-]+)?/', $line, $codeMatch) 
-                OR (empty($inList) AND empty($inQuote) AND $indent >= 4)
+            if ($codeBlock = preg_match('/^```\s*([\w-]+)?/', $line, $codeMatch)
+                or (empty($inList) and empty($inQuote) and $indent >= 4)
             ) {
-                $lang = ($codeBlock AND isset($codeMatch[1])) 
+                $lang = ($codeBlock and isset($codeMatch[1]))
                     ? " class=\"language-{$codeMatch[1]}\" "
                     : '';
                 $markup .= "\n<pre><code{$lang}>";
-                if (! $codeBlock) $markup .= htmlspecialchars(substr($line, 4));
-                
-                while( isset($this->Lines[$this->Pointer+1]) 
-                    AND ( ($line = htmlspecialchars($this->Lines[$this->Pointer+1])) OR true )
-                    AND ( ($codeBlock AND substr(ltrim($line), 0, 3) !== '```') OR substr($line, 0, 4) === '    ' )
+                if (! $codeBlock) {
+                    $markup .= htmlspecialchars(substr($line, 4));
+                }
+
+                while (isset($this->Lines[$this->Pointer+1]) and
+                    (($line = htmlspecialchars($this->Lines[$this->Pointer+1])) or true) and
+                    (($codeBlock and substr(ltrim($line), 0, 3) !== '```') or substr($line, 0, 4) === '    ')
                 ) {
-                    $markup .= ( "\n" ); //todo: donot use \n for first line
+                    $markup .= "\n"; # @todo: donot use \n for first line
                     $markup .= $codeBlock ? $line : substr($line, 4);
                     $this->Pointer++;
                 }
@@ -135,47 +141,48 @@ class HtmlUp
             }
 
             // rule
-            if ( isset($this->Lines[$this->Pointer-1])
-                AND trim($this->Lines[$this->Pointer-1]) === ''
-                AND preg_match('~^(_{3,}|\*{3,}|-{3,})$~', $trimmedLine) 
+            if (isset($this->Lines[$this->Pointer-1])
+                and trim($this->Lines[$this->Pointer-1]) === ''
+                and preg_match('~^(_{3,}|\*{3,}|-{3,})$~', $trimmedLine)
             ) {
                 $markup .= "\n<hr />";
                 continue;
             }
 
             // list
-            if ( $ul = in_array($mark12, array('- ', '* ', '+ '))
-                OR preg_match('/^\d+\. /', $mark12)
+            if ($ul = in_array($mark12, array('- ', '* ', '+ '))
+                or preg_match('/^\d+\. /', $mark12)
             ) {
                 $wrapper = $ul ? 'ul' : 'ol';
                 if (empty($inList)) {
                     $stackList[] = "</$wrapper>";
                     $markup .= "\n<$wrapper>\n";
                     $inList = true;
-                    $nestLevel++;                    
+                    $nestLevel++;
                 }
 
                 $markup .= "<li>".ltrim($trimmedLine, '-*0123456789. ');
 
-                if ( $ul = in_array($nextMark12, array('- ', '* ', '+ '))
-                    OR preg_match('/^\d+\. /', $nextMark12)
+                if ($ul = in_array($nextMark12, array('- ', '* ', '+ '))
+                    or preg_match('/^\d+\. /', $nextMark12)
                 ) {
                     $wrapper = $ul ? 'ul' : 'ol';
                     if ($nextIndent > $indent) {
                         $stackList[] = "</li>\n";
                         $stackList[] = "</$wrapper>";
                         $markup .= "\n<$wrapper>\n";
-                        $nestLevel++;                        
+                        $nestLevel++;
                     } else {
                         $markup .= "</li>\n";
                     }
 
+                    // handle nested lists ending
                     if ($nextIndent < $indent) {
-                        $shift = intval( ($indent - $nextIndent)/4 );
+                        $shift = intval(($indent - $nextIndent)/4);
                         while ($shift--) {
                             $markup .= array_pop($stackList);
                             if ($nestLevel > 2) {
-                                $markup .= array_pop($stackList);                            
+                                $markup .= array_pop($stackList);
                             }
                         }
                     }
@@ -192,52 +199,63 @@ class HtmlUp
             }
 
             // paragraph
-            if (empty($inPara)) $markup .= "\n<p>";
-            else $markup .= "\n<br />";
+            if (empty($inPara)) {
+                $markup .= "\n<p>";
+            } else {
+                $markup .= "\n<br />";
+            }
             $markup .= "{$trimmedLine}";
             if (empty($trimmedNextLine)) {
                 $markup .= "</p>";
                 $inPara = null;
-            } else $inPara = true;
+            } else {
+                $inPara = true;
+            }
         }
 
+        // urls
         $markup = preg_replace(
-            '~<(https?:[\/]{2}[^\s]+?)>~', # urls
-            '<a href="$1">$1</a>', 
-            preg_replace(
-                '~<(\S+?@\S+?)>~', # emails
-                '<a href="mailto:$1">$1</a>', 
-                $markup
-            )
+            '~<(https?:[\/]{2}[^\s]+?)>~',
+            '<a href="$1">$1</a>',
+            $markup
         );
 
-        # images
-        $markup = preg_replace_callback('~!\[(.+?)\]\s*\((.+?)\s*(".+?")?\)~', function($img){
+        // emails
+        $markup = preg_replace(
+            '~<(\S+?@\S+?)>~',
+            '<a href="mailto:$1">$1</a>',
+            $markup
+        );
+
+        // images
+        $markup = preg_replace_callback('~!\[(.+?)\]\s*\((.+?)\s*(".+?")?\)~', function ($img) {
             $title = isset($img[3]) ? " title={$img[3]} " : '';
             $alt = $img[1] ? " alt=\"{$img[1]}\" " : '';
+
             return "<img src=\"{$img[2]}\"{$title}{$alt}/>";
         }, $markup);
 
-        # anchors
-        $markup = preg_replace_callback('~\[(.+?)\]\s*\((.+?)\s*(".+?")?\)~', function($a){
+        // anchors
+        $markup = preg_replace_callback('~\[(.+?)\]\s*\((.+?)\s*(".+?")?\)~', function ($a) {
             $title = isset($a[3]) ? " title={$a[3]} " : '';
+
             return "<a href=\"{$a[2]}\"{$title}>{$a[1]}</a>";
         }, $markup);
 
-        # em/code/strong/del
-        $markup = preg_replace_callback('!(\*{1,2}|_{1,2}|`|~~)(.+?)\\1!', function($em){
+        // em/code/strong/del
+        $markup = preg_replace_callback('!(\*{1,2}|_{1,2}|`|~~)(.+?)\\1!', function ($em) {
             switch (true) {
                 case substr($em[1], 0, 2) === '**':
                 case substr($em[1], 0, 2) === '__':
                     $tag = 'strong';
-                    break;                
+                    break;
                 case substr($em[1], 0, 2) === '~~':
                     $tag = 'del';
                     break;
                 case $em[1] === '*': case $em[1] === '_':
                     $tag = 'em';
                     break;
-                default: 
+                default:
                     $tag = 'code';
                     $em[2] = htmlspecialchars($em[2]);
             }
@@ -247,5 +265,4 @@ class HtmlUp
 
         return $markup;
     }
-
 }
