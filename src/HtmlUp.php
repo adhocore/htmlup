@@ -27,8 +27,11 @@ class HtmlUp
                     str_replace(array("\r\n", "\r"), "\n",   # use standard newline
                         str_replace("\t", '    ', $markdown) # use 4 spaces for tab
                     ), "\n"
-                )."\n"      # ensure atleast one \n
+                )
             );
+
+        array_unshift($this->Lines, '');
+        $this->Lines[] = '';
 
         unset($markdown);
     }
@@ -103,8 +106,10 @@ class HtmlUp
             // atx
             if ($mark1 === '#') {
                 $level = strlen($trimmedLine) - strlen(ltrim($trimmedLine, '#'));
-                $markup .= "\n<h{$level}>".ltrim($trimmedLine, '# ')."</h{$level}>";
-                continue;
+                if ($level < 7) {
+                    $markup .= "\n<h{$level}>".ltrim($trimmedLine, '# ')."</h{$level}>";
+                    continue;
+                }
             }
 
             // setext
@@ -141,9 +146,9 @@ class HtmlUp
             }
 
             // rule
-            if (isset($this->Lines[$this->Pointer-1])
-                and trim($this->Lines[$this->Pointer-1]) === ''
-                and preg_match('~^(_{3,}|\*{3,}|-{3,})$~', $trimmedLine)
+            if (isset($this->Lines[$this->Pointer-1]) and
+                trim($this->Lines[$this->Pointer-1]) === '' and
+                preg_match('~^(_{3,}|\*{3,}|\-{3,})$~', $trimmedLine)
             ) {
                 $markup .= "\n<hr />";
                 continue;
