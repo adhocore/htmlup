@@ -156,7 +156,7 @@ class HtmlUp
 
             // list
             if ($ul = in_array($mark12, array('- ', '* ', '+ '))
-                or preg_match('/^\d+\. /', $mark12)
+                or preg_match('/^\d+\. /', $trimmedLine)
             ) {
                 $wrapper = $ul ? 'ul' : 'ol';
                 if (empty($inList)) {
@@ -169,7 +169,7 @@ class HtmlUp
                 $markup .= "<li>".ltrim($trimmedLine, '-*0123456789. ');
 
                 if ($ul = in_array($nextMark12, array('- ', '* ', '+ '))
-                    or preg_match('/^\d+\. /', $nextMark12)
+                    or preg_match('/^\d+\. /', $trimmedNextLine)
                 ) {
                     $wrapper = $ul ? 'ul' : 'ol';
                     if ($nextIndent > $indent) {
