@@ -30,8 +30,11 @@ class HtmlUp
                 )
             );
 
-        array_unshift($this->Lines, '');
-        $this->Lines[] = '';
+        // Pad if NOT empty. Good for early return @self::parse()
+        if (false === empty($this->Lines)) {
+            array_unshift($this->Lines, '');
+            $this->Lines[] = '';
+        }
 
         unset($markdown);
     }
