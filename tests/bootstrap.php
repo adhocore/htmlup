@@ -7,7 +7,9 @@ foreach (array(
     dirname(dirname(dirname(__DIR__))).'/autoload.php',
 ) as $loader) {
     if (is_file($loader)) {
-        require $loader;
-        break;
+        return require $loader;
     }
 }
+
+// As a last resort
+require dirname(__DIR__).'/src/Htmlup.php';
