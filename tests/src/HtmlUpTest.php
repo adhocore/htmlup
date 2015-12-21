@@ -1,5 +1,7 @@
 <?php
 
+use Ahc\HtmlUp;
+
 class HtmlUpTest extends PHPUnit_Framework_TestCase
 {
     /**
@@ -80,8 +82,8 @@ class HtmlUpTest extends PHPUnit_Framework_TestCase
     protected function assertion($testName, $expected, $actual)
     {
         $this->assertEquals(
-            $this->normalizeMarkup($expected), 
-            $this->normalizeMarkup($actual), 
+            $this->normalizeMarkup($expected),
+            $this->normalizeMarkup($actual),
             $testName
         );
     }
@@ -89,8 +91,8 @@ class HtmlUpTest extends PHPUnit_Framework_TestCase
     protected function normalizeMarkup($markup)
     {
         $markup = preg_replace(
-            array('/\>[^\S ]+/s', '/[^\S ]+\</s', ), 
-            array('>'           , '<'           , ),
+            array('/\>[^\S ]+/s', '/[^\S ]+\</s', ),
+            array('>', '<', ),
             $markup
         );
 

@@ -1,18 +1,24 @@
-
 # htmlup [![build status](https://travis-ci.org/adhocore/htmlup.svg?branch=master)](https://travis-ci.org/adhocore/htmlup)
 
-`htmlup` is ultra lightweight (packed in just _250lines_) and uber speedy markdown to html parser written in PHP.
+`htmlup` is ultra lightweight (packed in just _250 ncloc_) and uber speedy markdown to html parser written in PHP.
 **Concept** - it splits the markdown into lines and parses to markup one by one, finally applies markdown syntaxes on the markup.
 It supports most of the markdown as in [specs](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet "cheatsheet"). 
 
 **Crazy Part:** it is _single class_, _single function_ library, because hey! construct() and toString() are magics 
 
 
+# installation
+
+edit your `composer.json` to include `"adhocore/htmlup": "1.0.*@dev"` in the `require` section and run `composer update`
+
+
 # usage
 
-- include HtmlUp (`include '/path/to/HtmlUp.php';`)
-- `echo new HtmlUp($markdownText);`
-- for more styles see `example.php`
+```php
+require '/path/to/vendor/autolad.php';
+
+echo new Ahc\HtmlUp($markdownText);
+```
 
 
 # features
@@ -48,6 +54,15 @@ That _should_ be supported as per the markdown spec but for `htmlup` the raw htm
 ## table
 
 supports [GFM table syntax](https://help.github.com/articles/github-flavored-markdown/#tables), example:
+
+```
+a | b | c
+--- |----| ---
+1 | 2  |3
+ 4| 5 | 6
+```
+
+is rendered as:
 
 a | b | c
 --- |----| ---

@@ -1,5 +1,7 @@
 <?php
 
+namespace Ahc;
+
 /**
  * HtmlUp - A **lightweight** and **fast** `markdown` to HTML Parser.
  *
@@ -235,7 +237,7 @@ class HtmlUp
                     $markup .= "<td>{$col}</td>\n";
                 }
                 $markup .= "</tr>\n";
-                if (empty($trimmedNextLine) or 
+                if (empty($trimmedNextLine) or
                     !substr_count(trim($trimmedNextLine, '|'), '|')
                 ) {
                     $inTable = null;
