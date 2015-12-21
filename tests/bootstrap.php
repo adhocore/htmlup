@@ -12,4 +12,4 @@ foreach (array(
 }
 
 // As a last resort
-require dirname(__DIR__).'/src/Htmlup.php';
+require dirname(__DIR__).'/src/HtmlUp.php';
