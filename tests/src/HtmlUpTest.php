@@ -52,6 +52,28 @@ class HtmlUpTest extends PHPUnit_Framework_TestCase
                 $this->assemble('', '***', '', '___'),
                 '<hr /><hr />'
             ),
+            array(
+                'Table',
+                $this->assemble('a | b', '---|---', '1 | 2', '4 | 5'),
+                '<table>
+<thead>
+<tr>
+<th>a</th>
+<th>b</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>2</td>
+</tr>
+<tr>
+<td>4</td>
+<td>5</td>
+</tr>
+</tbody>
+</table>'
+            ),
         );
     }
 

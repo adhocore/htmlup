@@ -1,5 +1,5 @@
 
-# htmlup
+# htmlup [![build status](https://travis-ci.org/adhocore/htmlup.svg?branch=master)](https://travis-ci.org/adhocore/htmlup)
 
 `htmlup` is ultra lightweight (packed in just _250lines_) and uber speedy markdown to html parser written in PHP.
 **Concept** - it splits the markdown into lines and parses to markup one by one, finally applies markdown syntaxes on the markup.
@@ -44,6 +44,15 @@ That _should_ be supported as per the markdown spec but for `htmlup` the raw htm
 	<p>this line _is_ parsed as raw html by `htmlup`</p>
 </div>
 ```
+`
+## table
+
+supports [GFM table syntax](https://help.github.com/articles/github-flavored-markdown/#tables), example:
+
+a | b | c
+--- |----| ---
+1 | 2  |3
+ 4| 5 | 6
 
 
 # copyright and licence
@@ -55,7 +64,7 @@ That _should_ be supported as per the markdown spec but for `htmlup` the raw htm
 # todo
 
 - make robust, and provide full support of spec
-- handle markdown table syntax
+- ~~handle markdown table syntax~~
 - **markdown extra** however, is _not planned_ :(
 
 
