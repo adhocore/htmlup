@@ -9,13 +9,13 @@ It supports most of the markdown as in [specs](https://github.com/adam-p/markdow
 
 # installation
 
-edit your `composer.json` to include `"adhocore/htmlup": "1.0.*@dev"` in the `require` section and run `composer update`
+edit your `composer.json` to include `"adhocore/htmlup": "1.0.*@dev"` in the `require` section and run `composer update`, or run `composer require adhocore/htmlup:1.0.*@dev`
 
 
 # usage
 
 ```php
-require '/path/to/vendor/autolad.php';
+require '/path/to/vendor/autoload.php';
 
 echo new Ahc\HtmlUp($markdownText);
 ```
