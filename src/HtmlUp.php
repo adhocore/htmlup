@@ -24,7 +24,7 @@ class HtmlUp
         // some normalisations
         $this->Lines =
             explode("\n",   # the lines !
-                trim(# trim trailing \n
+                trim(       # trim trailing \n
                     str_replace(array("\r\n", "\r"), "\n",   # use standard newline
                         str_replace("\t", '    ', $markdown) # use 4 spaces for tab
                     ), "\n"
@@ -73,14 +73,23 @@ class HtmlUp
                     $markup .= array_pop($stackTable);
                 }
 
-                $inList = $inQuote = $inPara = null;
+                $markup .= "\n";
+
+                $inList = $inQuote = $inPara = $inHtml = null;
                 $nestLevel = $quoteLevel = 0;
                 continue;
             }
 
             // raw html
-            if (preg_match('/^<\/?\w.*?\/?>/', $trimmedLine)) {
+            if (preg_match('/^<\/?\w.*?\/?>/', $trimmedLine) or
+                isset($inHtml)
+            ) {
                 $markup .= "\n$line";
+                if (empty($inHtml) and
+                    empty($this->Lines[$this->Pointer-1])
+                ) {
+                    $inHtml = true;
+                }
                 continue;
             }
 

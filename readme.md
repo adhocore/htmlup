@@ -33,24 +33,24 @@ It provides limited support to deep nested elements, supported items are:
 
 ## raw html
 
-you can throw in your raw html but with all the lines with a `tag`. so there cant be a text node like such-
+you can throw in your raw html but with a blank line at start and end to delimit the block at like so-
 
 ```html
-<div>
-	<p>
-	this line is _not_ parsed as raw html by `htmlup`, rather as free text (codeblock mostly)
-	</p>
-</div>
+
+<dl>
+  <dt>
+  	A
+  </dt>
+  <dd>Apple 
+  	</dd>
+  	<dt>B
+  </dt>
+  <dd>
+  Ball</dd>
+</dl>
+
 ```
 
-That _should_ be supported as per the markdown spec but for `htmlup` the raw html shoule be like such-
-
-```html
-<div>
-	<p>this line _is_ parsed as raw html by `htmlup`</p>
-</div>
-```
-`
 ## table
 
 supports [GFM table syntax](https://help.github.com/articles/github-flavored-markdown/#tables), example:
