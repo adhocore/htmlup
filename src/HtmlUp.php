@@ -3,28 +3,26 @@
 namespace Ahc;
 
 /**
- * HtmlUp - A **lightweight** and **fast** `markdown` to HTML Parser.
+ * HtmlUp - A **lightweight** && **fast** `markdown` to HTML Parser.
  *
  * Supports most of the markdown specs except deep nested elements.
- * Check readme.md for the details of its features and limitations.
- * **Crazy Part:** it is _single class_, _single function_ library.
- *                 because hey! construct() and toString() are magics
+ * Check readme.md for the details of its features && limitations.
  *
  * @author adhocore | Jitendra Adhikari <jiten.adhikary@gmail.com>
  * @copyright (c) 2014 Jitendra Adhikari
  */
 class HtmlUp
 {
-    private $Lines;
+    private $lines;
 
-    private $Pointer = -1;
+    private $pointer = -1;
 
     public function __construct($markdown)
     {
-        // some normalisations
-        $this->Lines =
+        // Some normalizations
+        $this->lines =
             explode("\n",   # the lines !
-                trim(       # trim trailing \n
+                trim(# trim trailing \n
                     str_replace(array("\r\n", "\r"), "\n",   # use standard newline
                         str_replace("\t", '    ', $markdown) # use 4 spaces for tab
                     ), "\n"
@@ -32,9 +30,10 @@ class HtmlUp
             );
 
         // Pad if NOT empty. Good for early return @self::parse()
-        if (false === empty($this->Lines)) {
-            array_unshift($this->Lines, '');
-            $this->Lines[] = '';
+        if (false === empty($this->lines)) {
+            array_unshift($this->lines, '');
+
+            $this->lines[] = '';
         }
 
         unset($markdown);
@@ -47,18 +46,19 @@ class HtmlUp
 
     public function parse()
     {
-        if (empty($this->Lines)) {
+        if (empty($this->lines)) {
             return '';
         }
 
-        $markup = '';
-        $nestLevel = $quoteLevel = 0;
-        $indent = $nextIndent = 0;
-        $stackList = $stackBlock = $stackTable = array();
-        $lastPointer = count($this->Lines) - 1;
+        $markup      = '';
+        $nestLevel   = $quoteLevel = 0;
+        $indent      = $nextIndent = 0;
+        $stackList   = $stackBlock = array();
+        $stackTable  = array();
+        $lastPointer = count($this->lines) - 1;
 
-        while (isset($this->Lines[++$this->Pointer])) {
-            $line = $this->Lines[$this->Pointer];
+        while (isset($this->lines[++$this->pointer])) {
+            $line        = $this->lines[$this->pointer];
             $trimmedLine = trim($line);
 
             // flush stacks at the end of block
@@ -75,48 +75,48 @@ class HtmlUp
 
                 $markup .= "\n";
 
-                $inList = $inQuote = $inPara = $inHtml = null;
+                $inList    = $inQuote = $inPara = $inHtml = null;
                 $nestLevel = $quoteLevel = 0;
+
                 continue;
             }
 
             // raw html
-            if (preg_match('/^<\/?\w.*?\/?>/', $trimmedLine) or
-                isset($inHtml)
-            ) {
+            if (preg_match('/^<\/?\w.*?\/?>/', $trimmedLine) || isset($inHtml)) {
                 $markup .= "\n$line";
-                if (empty($inHtml) and
-                    empty($this->Lines[$this->Pointer-1])
-                ) {
+                if (empty($inHtml) && empty($this->lines[$this->pointer-1])) {
                     $inHtml = true;
                 }
+
                 continue;
             }
 
-            $nextLine = $this->Pointer < $lastPointer
-                ? $this->Lines[$this->Pointer + 1]
+            $nextLine = $this->pointer < $lastPointer
+                ? $this->lines[$this->pointer + 1]
                 : null;
             $trimmedNextLine = $nextLine ? trim($nextLine) : null;
 
-            $indent = strlen($line) - strlen(ltrim($line));
+            $indent     = strlen($line) - strlen(ltrim($line));
             $nextIndent = $nextLine ? strlen($nextLine) - strlen(ltrim($nextLine)) : 0;
 
-            $nextMark1 = isset($trimmedNextLine[0]) ? $trimmedNextLine[0] : null;
+            $nextMark1  = isset($trimmedNextLine[0]) ? $trimmedNextLine[0] : null;
             $nextMark12 = $trimmedNextLine ? substr($trimmedNextLine, 0, 2) : null;
 
             // blockquote
             if (preg_match('~^\s*(>+)\s+~', $line, $quoteMatch)) {
                 $line = substr($line, strlen($quoteMatch[0]));
                 $trimmedLine = trim($line);
-                if (empty($inQuote) or $quoteLevel < strlen($quoteMatch[1])) {
+
+                if (empty($inQuote) || $quoteLevel < strlen($quoteMatch[1])) {
                     $markup .= "\n<blockquote>";
                     $stackBlock[] = "\n</blockquote>";
                     ++$quoteLevel;
                 }
+
                 $inQuote = true;
             }
 
-            $mark1 = $trimmedLine[0];
+            $mark1  = $trimmedLine[0];
             $mark12 = substr($trimmedLine, 0, 2);
 
             // atx
@@ -124,6 +124,7 @@ class HtmlUp
                 $level = strlen($trimmedLine) - strlen(ltrim($trimmedLine, '#'));
                 if ($level < 7) {
                     $markup .= "\n<h{$level}>".ltrim($trimmedLine, '# ')."</h{$level}>";
+
                     continue;
                 }
             }
@@ -132,38 +133,42 @@ class HtmlUp
             if (preg_match('~^\s*(={3,}|-{3,})\s*$~', $nextLine)) {
                 $level = trim($nextLine, '- ') === '' ? '2' : '1';
                 $markup .= "\n<h{$level}>{$trimmedLine}</h{$level}>";
-                ++$this->Pointer;
+                ++$this->pointer;
+
                 continue;
             }
 
             // fence code
             if ($codeBlock = preg_match('/^```\s*([\w-]+)?/', $line, $codeMatch)
-                or (empty($inList) and empty($inQuote) and $indent >= 4)
+                || (empty($inList) && empty($inQuote) && $indent >= 4)
             ) {
-                $lang = ($codeBlock and isset($codeMatch[1]))
+                $lang = ($codeBlock && isset($codeMatch[1]))
                     ? " class=\"language-{$codeMatch[1]}\" "
                     : '';
                 $markup .= "\n<pre><code{$lang}>";
+
                 if (!$codeBlock) {
                     $markup .= htmlspecialchars(substr($line, 4));
                 }
 
-                while (isset($this->Lines[$this->Pointer + 1]) and
-                    (($line = htmlspecialchars($this->Lines[$this->Pointer + 1])) or true) and
-                    (($codeBlock and substr(ltrim($line), 0, 3) !== '```') or substr($line, 0, 4) === '    ')
+                while (isset($this->lines[$this->pointer + 1]) and
+                    (($line = htmlspecialchars($this->lines[$this->pointer + 1])) || true) and
+                    (($codeBlock && substr(ltrim($line), 0, 3) !== '```') || substr($line, 0, 4) === '    ')
                 ) {
                     $markup .= "\n"; # @todo: donot use \n for first line
                     $markup .= $codeBlock ? $line : substr($line, 4);
-                    ++$this->Pointer;
+                    ++$this->pointer;
                 }
-                ++$this->Pointer;
+
+                ++$this->pointer;
                 $markup .= '</code></pre>';
+
                 continue;
             }
 
             // rule
-            if (isset($this->Lines[$this->Pointer - 1]) and
-                trim($this->Lines[$this->Pointer - 1]) === '' and
+            if (isset($this->lines[$this->pointer - 1]) and
+                trim($this->lines[$this->pointer - 1]) === '' and
                 preg_match('~^(_{3,}|\*{3,}|\-{3,})$~', $trimmedLine)
             ) {
                 $markup .= "\n<hr />";
@@ -226,7 +231,7 @@ class HtmlUp
                     $hdrCt <= $colCt
                 ) {
                     $inTable = true;
-                    ++$this->Pointer;
+                    ++$this->pointer;
                     $markup .= "<table>\n<thead>\n<tr>\n";
                     $trimmedLine = trim($trimmedLine, '|');
                     foreach (explode('|', $trimmedLine) as $hdr) {
