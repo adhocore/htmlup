@@ -23,10 +23,10 @@ class HtmlUp
     {
         // some normalisations
         $this->Lines =
-            explode("\n",   # the lines !
-                trim(       # trim trailing \n
-                    str_replace(array("\r\n", "\r"), "\n",   # use standard newline
-                        str_replace("\t", '    ', $markdown) # use 4 spaces for tab
+            explode("\n",   // the lines !
+                trim(       // trim trailing \n
+                    str_replace(["\r\n", "\r"], "\n",   // use standard newline
+                        str_replace("\t", '    ', $markdown) // use 4 spaces for tab
                     ), "\n"
                 )
             );
@@ -54,7 +54,7 @@ class HtmlUp
         $markup = '';
         $nestLevel = $quoteLevel = 0;
         $indent = $nextIndent = 0;
-        $stackList = $stackBlock = $stackTable = array();
+        $stackList = $stackBlock = $stackTable = [];
         $lastPointer = count($this->Lines) - 1;
 
         while (isset($this->Lines[++$this->Pointer])) {
@@ -86,7 +86,7 @@ class HtmlUp
             ) {
                 $markup .= "\n$line";
                 if (empty($inHtml) and
-                    empty($this->Lines[$this->Pointer-1])
+                    empty($this->Lines[$this->Pointer - 1])
                 ) {
                     $inHtml = true;
                 }
@@ -152,7 +152,7 @@ class HtmlUp
                     (($line = htmlspecialchars($this->Lines[$this->Pointer + 1])) or true) and
                     (($codeBlock and substr(ltrim($line), 0, 3) !== '```') or substr($line, 0, 4) === '    ')
                 ) {
-                    $markup .= "\n"; # @todo: donot use \n for first line
+                    $markup .= "\n"; // @todo: donot use \n for first line
                     $markup .= $codeBlock ? $line : substr($line, 4);
                     ++$this->Pointer;
                 }
@@ -171,7 +171,7 @@ class HtmlUp
             }
 
             // list
-            if ($ul = in_array($mark12, array('- ', '* ', '+ ')) or
+            if ($ul = in_array($mark12, ['- ', '* ', '+ ']) or
                 preg_match('/^\d+\. /', $trimmedLine)
             ) {
                 $wrapper = $ul ? 'ul' : 'ol';
@@ -184,7 +184,7 @@ class HtmlUp
 
                 $markup .= '<li>'.ltrim($trimmedLine, '-*0123456789. ');
 
-                if ($ul = in_array($nextMark12, array('- ', '* ', '+ ')) or
+                if ($ul = in_array($nextMark12, ['- ', '* ', '+ ']) or
                     preg_match('/^\d+\. /', $trimmedNextLine)
                 ) {
                     $wrapper = $ul ? 'ul' : 'ol';
