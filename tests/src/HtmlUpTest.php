@@ -6,12 +6,11 @@ class HtmlUpTest extends PHPUnit_Framework_TestCase
 {
     /**
      * @dataProvider dataSrc
-     *
      */
     public function testAll()
     {
         list($testName, $markdown, $expectedMarkup) = func_get_args();
-        $actualMarkup = (string) new HtmlUp($markdown);
+        $actualMarkup                               = (string) new HtmlUp($markdown);
 
         $this->assertion($testName, $expectedMarkup, $actualMarkup);
     }
@@ -24,37 +23,37 @@ class HtmlUpTest extends PHPUnit_Framework_TestCase
      *      'markdown text',
      *      'expected markup text'
      *   )
-     * </code>
+     * </code>.
      */
     public function dataSrc()
     {
-        return array(
-            array(
+        return [
+            [
                 'Atx Header',
                 $this->assemble('# HelloH1', '## HelloH2'),
-                '<h1>HelloH1</h1><h2>HelloH2</h2>'
-            ),
-            array(
+                '<h1>HelloH1</h1><h2>HelloH2</h2>',
+            ],
+            [
                 'Unordered List',
                 $this->assemble('- Hello', '* HelloAgain'),
-                '<ul><li>Hello</li><li>HelloAgain</li></ul>'
-            ),
-            array(
+                '<ul><li>Hello</li><li>HelloAgain</li></ul>',
+            ],
+            [
                 'Ordered List',
                 $this->assemble('1. Hello', '2. HelloAgain'),
-                '<ol><li>Hello</li><li>HelloAgain</li></ol>'
-            ),
-            array(
+                '<ol><li>Hello</li><li>HelloAgain</li></ol>',
+            ],
+            [
                 'H8 is Paragraph',
                 '######## NoHeader',
-                '<p>######## NoHeader</p>'
-            ),
-            array(
+                '<p>######## NoHeader</p>',
+            ],
+            [
                 'Horizontal Rule',
                 $this->assemble('', '***', '', '___'),
-                '<hr /><hr />'
-            ),
-            array(
+                '<hr /><hr />',
+            ],
+            [
                 'Table',
                 $this->assemble('a | b', '---|---', '1 | 2', '4 | 5'),
                 '<table>
@@ -74,9 +73,9 @@ class HtmlUpTest extends PHPUnit_Framework_TestCase
 <td>5</td>
 </tr>
 </tbody>
-</table>'
-            ),
-        );
+</table>',
+            ],
+        ];
     }
 
     protected function assertion($testName, $expected, $actual)
@@ -91,8 +90,8 @@ class HtmlUpTest extends PHPUnit_Framework_TestCase
     protected function normalizeMarkup($markup)
     {
         $markup = preg_replace(
-            array('/\>[^\S ]+/s', '/[^\S ]+\</s', ),
-            array('>', '<', ),
+            ['/\>[^\S ]+/s', '/[^\S ]+\</s'],
+            ['>', '<'],
             $markup
         );
 
