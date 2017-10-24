@@ -2,10 +2,10 @@
 
 error_reporting(E_ALL);
 
-foreach (array(
+foreach ([
     dirname(__DIR__).'/vendor/autoload.php',
     dirname(dirname(dirname(__DIR__))).'/autoload.php',
-) as $loader) {
+] as $loader) {
     if (is_file($loader)) {
         return require $loader;
     }

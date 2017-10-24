@@ -8,13 +8,13 @@ $markdown = file_get_contents(dirname(__DIR__).'/readme.md');
 
 /* You can use any of the three usage methods below */
 
-# usage 1
+// usage 1
 // $h = new HtmlUp($markdown);
-// echo $h->parse(); 
+// echo $h->parse();
 
-# usage 2
+// usage 2
 // $h = new HtmlUp($markdown);
-// echo $h; 
+// echo $h;
 
-# usage 3
+// usage 3
 echo new HtmlUp($markdown);
