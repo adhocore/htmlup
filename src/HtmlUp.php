@@ -23,10 +23,10 @@ class HtmlUp
     {
         // some normalisations
         $this->Lines =
-            explode("\n",   # the lines !
-                trim(       # trim trailing \n
-                    str_replace(array("\r\n", "\r"), "\n",   # use standard newline
-                        str_replace("\t", '    ', $markdown) # use 4 spaces for tab
+            explode("\n",   // the lines !
+                trim(       // trim trailing \n
+                    str_replace(["\r\n", "\r"], "\n",   // use standard newline
+                        str_replace("\t", '    ', $markdown) // use 4 spaces for tab
                     ), "\n"
                 )
             );
@@ -51,14 +51,14 @@ class HtmlUp
             return '';
         }
 
-        $markup = '';
-        $nestLevel = $quoteLevel = 0;
-        $indent = $nextIndent = 0;
-        $stackList = $stackBlock = $stackTable = array();
+        $markup      = '';
+        $nestLevel   = $quoteLevel   = 0;
+        $indent      = $nextIndent      = 0;
+        $stackList   = $stackBlock   = $stackTable   = [];
         $lastPointer = count($this->Lines) - 1;
 
         while (isset($this->Lines[++$this->Pointer])) {
-            $line = $this->Lines[$this->Pointer];
+            $line        = $this->Lines[$this->Pointer];
             $trimmedLine = trim($line);
 
             // flush stacks at the end of block
@@ -75,7 +75,7 @@ class HtmlUp
 
                 $markup .= "\n";
 
-                $inList = $inQuote = $inPara = $inHtml = null;
+                $inList    = $inQuote    = $inPara    = $inHtml    = null;
                 $nestLevel = $quoteLevel = 0;
                 continue;
             }
@@ -86,7 +86,7 @@ class HtmlUp
             ) {
                 $markup .= "\n$line";
                 if (empty($inHtml) and
-                    empty($this->Lines[$this->Pointer-1])
+                    empty($this->Lines[$this->Pointer - 1])
                 ) {
                     $inHtml = true;
                 }
@@ -98,15 +98,15 @@ class HtmlUp
                 : null;
             $trimmedNextLine = $nextLine ? trim($nextLine) : null;
 
-            $indent = strlen($line) - strlen(ltrim($line));
+            $indent     = strlen($line) - strlen(ltrim($line));
             $nextIndent = $nextLine ? strlen($nextLine) - strlen(ltrim($nextLine)) : 0;
 
-            $nextMark1 = isset($trimmedNextLine[0]) ? $trimmedNextLine[0] : null;
+            $nextMark1  = isset($trimmedNextLine[0]) ? $trimmedNextLine[0] : null;
             $nextMark12 = $trimmedNextLine ? substr($trimmedNextLine, 0, 2) : null;
 
             // blockquote
             if (preg_match('~^\s*(>+)\s+~', $line, $quoteMatch)) {
-                $line = substr($line, strlen($quoteMatch[0]));
+                $line        = substr($line, strlen($quoteMatch[0]));
                 $trimmedLine = trim($line);
                 if (empty($inQuote) or $quoteLevel < strlen($quoteMatch[1])) {
                     $markup .= "\n<blockquote>";
@@ -116,14 +116,14 @@ class HtmlUp
                 $inQuote = true;
             }
 
-            $mark1 = $trimmedLine[0];
+            $mark1  = $trimmedLine[0];
             $mark12 = substr($trimmedLine, 0, 2);
 
             // atx
             if ($mark1 === '#') {
                 $level = strlen($trimmedLine) - strlen(ltrim($trimmedLine, '#'));
                 if ($level < 7) {
-                    $markup .= "\n<h{$level}>".ltrim($trimmedLine, '# ')."</h{$level}>";
+                    $markup .= "\n<h{$level}>" . ltrim($trimmedLine, '# ') . "</h{$level}>";
                     continue;
                 }
             }
@@ -152,7 +152,7 @@ class HtmlUp
                     (($line = htmlspecialchars($this->Lines[$this->Pointer + 1])) or true) and
                     (($codeBlock and substr(ltrim($line), 0, 3) !== '```') or substr($line, 0, 4) === '    ')
                 ) {
-                    $markup .= "\n"; # @todo: donot use \n for first line
+                    $markup .= "\n"; // @todo: donot use \n for first line
                     $markup .= $codeBlock ? $line : substr($line, 4);
                     ++$this->Pointer;
                 }
@@ -171,7 +171,7 @@ class HtmlUp
             }
 
             // list
-            if ($ul = in_array($mark12, array('- ', '* ', '+ ')) or
+            if ($ul = in_array($mark12, ['- ', '* ', '+ ']) or
                 preg_match('/^\d+\. /', $trimmedLine)
             ) {
                 $wrapper = $ul ? 'ul' : 'ol';
@@ -182,9 +182,9 @@ class HtmlUp
                     ++$nestLevel;
                 }
 
-                $markup .= '<li>'.ltrim($trimmedLine, '-*0123456789. ');
+                $markup .= '<li>' . ltrim($trimmedLine, '-*0123456789. ');
 
-                if ($ul = in_array($nextMark12, array('- ', '* ', '+ ')) or
+                if ($ul = in_array($nextMark12, ['- ', '* ', '+ ']) or
                     preg_match('/^\d+\. /', $trimmedNextLine)
                 ) {
                     $wrapper = $ul ? 'ul' : 'ol';
@@ -249,7 +249,7 @@ class HtmlUp
                 if (empty($trimmedNextLine) or
                     !substr_count(trim($trimmedNextLine, '|'), '|')
                 ) {
-                    $inTable = null;
+                    $inTable      = null;
                     $stackTable[] = "</tbody>\n</table>";
                 }
 
