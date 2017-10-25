@@ -93,12 +93,7 @@ class HtmlUp
             $this->trimmedLine = trim($this->line);
 
             // flush stacks at the end of block
-            if ($this->flush()) {
-                continue;
-            }
-
-            // raw html
-            if ($this->raw()) {
+            if ($this->flush() || $this->raw()) {
                 continue;
             }
 
