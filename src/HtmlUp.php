@@ -112,16 +112,7 @@ class HtmlUp
             $mark1  = $this->trimmedLine[0];
             $mark12 = substr($this->trimmedLine, 0, 2);
 
-            if ($this->atx()) {
-                continue;
-            }
-
-            // setext
-            if (preg_match('~^\s*(={3,}|-{3,})\s*$~', $this->nextLine)) {
-                $level = trim($this->nextLine, '- ') === '' ? '2' : '1';
-                $this->markup .= "\n<h{$level}>{$this->trimmedLine}</h{$level}>";
-                ++$this->pointer;
-
+            if ($this->atx() || $this->setext()) {
                 continue;
             }
 
