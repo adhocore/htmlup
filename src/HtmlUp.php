@@ -387,7 +387,7 @@ class HtmlUp
                     $shift = intval(($this->indent - $this->nextIndent) / 4);
                     while ($shift--) {
                         $this->markup .= array_pop($this->stackList);
-                        if ($this->nestLevel > 2) {
+                        if ($this->listLevel > 2) {
                             $this->markup .= array_pop($this->stackList);
                         }
                     }
