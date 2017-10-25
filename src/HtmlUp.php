@@ -144,12 +144,7 @@ class HtmlUp
                 continue;
             }
 
-            // rule
-            if (isset($this->lines[$this->pointer - 1]) and
-                trim($this->lines[$this->pointer - 1]) === '' and
-                preg_match('~^(_{3,}|\*{3,}|\-{3,})$~', $this->trimmedLine)
-            ) {
-                $this->markup .= "\n<hr />";
+            if ($this->rule()) {
                 continue;
             }
 
