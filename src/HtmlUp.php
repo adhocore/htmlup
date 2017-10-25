@@ -105,21 +105,11 @@ class HtmlUp
     protected function parseBlockElements()
     {
         while (isset($this->lines[++$this->pointer])) {
-            list($this->prevLine, $this->trimmedPrevLine) = [$this->line, $this->trimmedLine];
-
-            $this->line        = $this->lines[$this->pointer];
-            $this->trimmedLine = trim($this->line);
+            $this->init();
 
             if ($this->flush() || $this->raw()) {
                 continue;
             }
-
-            $this->indent          = strlen($this->line) - strlen(ltrim($this->line));
-            $this->nextLine        = isset($this->lines[$this->pointer + 1])
-                ? $this->lines[$this->pointer + 1]
-                : '';
-            $this->trimmedNextLine = trim($this->nextLine);
-            $this->nextIndent      = strlen($this->nextLine) - strlen(ltrim($this->nextLine));
 
             $this->quote();
 
@@ -136,6 +126,22 @@ class HtmlUp
             $this->table() || $this->paragraph();
         }
     }
+
+    protected function init()
+    {
+        list($this->prevLine, $this->trimmedPrevLine) = [$this->line, $this->trimmedLine];
+
+        $this->line        = $this->lines[$this->pointer];
+        $this->trimmedLine = trim($this->line);
+
+        $this->indent          = strlen($this->line) - strlen(ltrim($this->line));
+        $this->nextLine        = isset($this->lines[$this->pointer + 1])
+            ? $this->lines[$this->pointer + 1]
+            : '';
+        $this->trimmedNextLine = trim($this->nextLine);
+        $this->nextIndent      = strlen($this->nextLine) - strlen(ltrim($this->nextLine));
+    }
+
 
     protected function parseSpanElements()
     {
@@ -230,15 +236,15 @@ class HtmlUp
             return false;
         }
 
-        while ($this->stackList) {
+        while (!empty($this->stackList)) {
             $this->markup .= array_pop($this->stackList);
         }
 
-        while ($this->stackBlock) {
+        while (!empty($this->stackBlock)) {
             $this->markup .= array_pop($this->stackBlock);
         }
 
-        while ($this->stackTable) {
+        while (!empty($this->stackTable)) {
             $this->markup .= array_pop($this->stackTable);
         }
 
@@ -267,10 +273,10 @@ class HtmlUp
             $this->line        = substr($this->line, strlen($quoteMatch[0]));
             $this->trimmedLine = trim($this->line);
 
-            if (!$this->inQuote || $quoteLevel < strlen($quoteMatch[1])) {
+            if (!$this->inQuote || $this->quoteLevel < strlen($quoteMatch[1])) {
                 $this->markup .= "\n<blockquote>";
 
-                $stackBlock[] = "\n</blockquote>";
+                $this->stackBlock[] = "\n</blockquote>";
 
                 ++$this->quoteLevel;
             }
