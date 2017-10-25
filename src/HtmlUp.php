@@ -420,45 +420,54 @@ class HtmlUp
 
     protected function table()
     {
-        static $hdrCt;
+        static $headerCount = 0;
 
         if (!$this->inTable) {
-            $hdrCt = substr_count(trim($this->trimmedLine, '|'), '|');
-            $colCt = preg_match_all(static::RE_MD_TCOL, trim($this->trimmedNextLine, '|'));
+            $headerCount = substr_count(trim($this->trimmedLine, '|'), '|');
 
-            if ($hdrCt > 0 && $colCt > 0 && $hdrCt <= $colCt) {
-                ++$this->pointer;
+            return $this->tableInternal($headerCount);
+        }
 
-                $this->inTable     = true;
-                $this->markup .= "<table>\n<thead>\n<tr>\n";
-                $this->trimmedLine = trim($this->trimmedLine, '|');
+        $this->markup .= "<tr>\n";
 
-                foreach (explode('|', $this->trimmedLine) as $hdr) {
-                    $this->markup .= '<th>' . trim($hdr) . "</th>\n";
-                }
-
-                $this->markup .= "</tr>\n</thead>\n<tbody>\n";
-
-                return true;
-            }
-        } else {
-            $this->markup .= "<tr>\n";
-
-            foreach (explode('|', trim($this->trimmedLine, '|')) as $i => $col) {
-                if ($i > $hdrCt) {
-                    break;
-                }
-                $col           = trim($col);
-                $this->markup .= "<td>{$col}</td>\n";
+        foreach (explode('|', trim($this->trimmedLine, '|')) as $i => $col) {
+            if ($i > $headerCount) {
+                break;
             }
 
-            $this->markup .= "</tr>\n";
+            $col           = trim($col);
+            $this->markup .= "<td>{$col}</td>\n";
+        }
 
-            if (empty($this->trimmedNextLine) || !substr_count(trim($this->trimmedNextLine, '|'), '|')) {
-                $hdrCt              = 0;
-                $this->inTable      = false;
-                $this->stackTable[] = "</tbody>\n</table>";
+        $this->markup .= "</tr>\n";
+
+        if (empty($this->trimmedNextLine)
+            || !substr_count(trim($this->trimmedNextLine, '|'), '|')
+        ) {
+            $headerCount        = 0;
+            $this->inTable      = false;
+            $this->stackTable[] = "</tbody>\n</table>";
+        }
+
+        return true;
+    }
+
+    protected function tableInternal($headerCount)
+    {
+        $columnCount = preg_match_all(static::RE_MD_TCOL, trim($this->trimmedNextLine, '|'));
+
+        if ($headerCount > 0 && $headerCount <= $columnCount) {
+            ++$this->pointer;
+
+            $this->inTable     = true;
+            $this->markup .= "<table>\n<thead>\n<tr>\n";
+            $this->trimmedLine = trim($this->trimmedLine, '|');
+
+            foreach (explode('|', $this->trimmedLine) as $hdr) {
+                $this->markup .= '<th>' . trim($hdr) . "</th>\n";
             }
+
+            $this->markup .= "</tr>\n</thead>\n<tbody>\n";
 
             return true;
         }
