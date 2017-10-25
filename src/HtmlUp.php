@@ -179,7 +179,6 @@ class HtmlUp
 
             return "<a href=\"{$a[2]}\"{$title}>{$a[1]}</a>";
         }, $this->markup);
-
     }
 
     protected function spans()
@@ -287,7 +286,7 @@ class HtmlUp
 
             if ($level < 7) {
                 $this->markup .= "\n<h{$level}>" . ltrim(ltrim($this->trimmedLine, '# ')) . "</h{$level}>";
-                
+
                 return true;
             }
         }
@@ -327,7 +326,7 @@ class HtmlUp
                 if (($codeBlock && substr(ltrim($this->line), 0, 3) !== '```')
                     || substr($this->line, 0, 4) === $this->indentStr
                 ) {
-                    $this->markup .= "\n"; # @todo: donot use \n for first line
+                    $this->markup .= "\n"; // @todo: donot use \n for first line
                     $this->markup .= $codeBlock ? $this->line : substr($this->line, 4);
 
                     ++$this->pointer;
@@ -362,13 +361,13 @@ class HtmlUp
 
             if (!$this->inList) {
                 $this->stackList[] = "</$wrapper>";
-                $this->markup     .= "\n<$wrapper>\n";
+                $this->markup .= "\n<$wrapper>\n";
                 $this->inList      = true;
 
                 ++$this->listLevel;
             }
 
-            $this->markup .= '<li>'.ltrim($this->trimmedLine, '-*0123456789. ');
+            $this->markup .= '<li>' . ltrim($this->trimmedLine, '-*0123456789. ');
 
             $isUl = in_array(substr($this->trimmedNextLine, 0, 2), ['- ', '* ', '+ ']);
 
@@ -377,7 +376,7 @@ class HtmlUp
                 if ($this->nextIndent > $this->indent) {
                     $this->stackList[] = "</li>\n";
                     $this->stackList[] = "</$wrapper>";
-                    $this->markup     .= "\n<$wrapper>\n";
+                    $this->markup .= "\n<$wrapper>\n";
 
                     ++$this->listLevel;
                 } else {
@@ -411,9 +410,9 @@ class HtmlUp
 
             if ($hdrCt > 0 && $colCt > 0 && $hdrCt <= $colCt) {
                 ++$this->pointer;
- 
+
                 $this->inTable     = true;
-                $this->markup     .= "<table>\n<thead>\n<tr>\n";
+                $this->markup .= "<table>\n<thead>\n<tr>\n";
                 $this->trimmedLine = trim($this->trimmedLine, '|');
 
                 foreach (explode('|', $this->trimmedLine) as $hdr) {
