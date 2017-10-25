@@ -142,7 +142,6 @@ class HtmlUp
         $this->nextIndent      = strlen($this->nextLine) - strlen(ltrim($this->nextLine));
     }
 
-
     protected function parseSpanElements()
     {
         $this->links();
