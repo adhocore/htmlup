@@ -90,6 +90,7 @@ class HtmlUp
 
         while (isset($this->lines[++$this->pointer])) {
             list($this->prevLine, $this->trimmedPrevLine) = [$this->line, $this->trimmedLine];
+
             $this->line        = $this->lines[$this->pointer];
             $this->trimmedLine = trim($this->line);
 
@@ -100,46 +101,15 @@ class HtmlUp
 
             $this->indent          = strlen($this->line) - strlen(ltrim($this->line));
             $this->nextLine        = isset($this->lines[$this->pointer + 1])
-                                     ? $this->lines[$this->pointer + 1] : '';
+                ? $this->lines[$this->pointer + 1]
+                : '';
             $this->trimmedNextLine = trim($this->nextLine);
             $this->nextIndent      = strlen($this->nextLine) - strlen(ltrim($this->nextLine));
 
             // blockquote
             $this->quote();
 
-            if ($this->atx() || $this->setext()) {
-                continue;
-            }
-
-            // fence code
-            if ($codeBlock = preg_match('/^```\s*([\w-]+)?/', $this->line, $codeMatch)
-                || (empty($inList) && empty($this->inQuote) && $this->indent >= 4)
-            ) {
-                $lang = ($codeBlock && isset($codeMatch[1]))
-                    ? " class=\"language-{$codeMatch[1]}\" "
-                    : '';
-                $this->markup .= "\n<pre><code{$lang}>";
-
-                if (!$codeBlock) {
-                    $this->markup .= htmlspecialchars(substr($this->line, 4));
-                }
-
-                while (isset($this->lines[$this->pointer + 1]) and
-                    (($this->line = htmlspecialchars($this->lines[$this->pointer + 1])) || true) and
-                    (($codeBlock && substr(ltrim($this->line), 0, 3) !== '```') || substr($this->line, 0, 4) === '    ')
-                ) {
-                    $this->markup .= "\n"; # @todo: donot use \n for first line
-                    $this->markup .= $codeBlock ? $this->line : substr($this->line, 4);
-                    ++$this->pointer;
-                }
-
-                ++$this->pointer;
-                $this->markup .= '</code></pre>';
-
-                continue;
-            }
-
-            if ($this->rule() || $this->listt()) {
+            if ($this->atx() || $this->setext() || $this->code() || $this->rule() || $this->listt()) {
                 continue;
             }
 
@@ -205,6 +175,11 @@ class HtmlUp
         }, $this->markup);
 
         return $this->markup;
+    }
+
+    public function escape($input)
+    {
+        return htmlspecialchars($input);
     }
 
     public function reset($all = false)
@@ -296,13 +271,13 @@ class HtmlUp
         }
     }
 
-    protected function fence()
+    protected function code()
     {
-        if ($codeBlock = preg_match('/^```\s*([\w-]+)?/', $this->line, $codeMatch)
-            || (!$this->inList && !$this->inQuote && $this->indent >= strlen($this->indentStr))
-        ) {
-            $lang = ($codeBlock && isset($codeMatch[1]))
-                ? " class=\"language-{$codeMatch[1]}\" "
+        $codeBlock = preg_match('/^```\s*([\w-]+)?/', $this->line, $codeMatch);
+
+        if ($codeBlock || (empty($this->inList) && empty($this->inQuote) && $this->indent >= 4)) {
+            $lang = isset($codeMatch[1])
+                ? ' class="language-' . $codeMatch[1] . '"'
                 : '';
 
             $this->markup .= "\n<pre><code{$lang}>";
@@ -313,7 +288,35 @@ class HtmlUp
 
             while (isset($this->lines[$this->pointer + 1]) and
                 (($this->line = htmlspecialchars($this->lines[$this->pointer + 1])) || true) and
-                (($codeBlock && substr(ltrim($this->line), 0, 3) !== '```') || substr($this->line, 0, 4) === $this->indentStr)
+                (($codeBlock && substr(ltrim($this->line), 0, 3) !== '```') || substr($this->line, 0, 4) === '    ')
+            ) {
+                $this->markup .= "\n"; # @todo: donot use \n for first line
+                $this->markup .= $codeBlock ? $this->line : substr($this->line, 4);
+                ++$this->pointer;
+            }
+
+            ++$this->pointer;
+            $this->markup .= '</code></pre>';
+
+            return true;
+        }
+return false;
+        $codeBlock = preg_match('/^```\s*([\w-]+)?/', $this->line, $codeMatch);
+
+        if ($codeBlock || (!$this->inList && !$this->inQuote && $this->indent >= strlen($this->indentStr))) {
+            $lang = isset($codeMatch[1])
+                ? ' class="language-' . $codeMatch[1] . '"'
+                : '';
+
+            $this->markup .= "\n<pre><code{$lang}>";
+
+            if (!$codeBlock) {
+                $this->markup .= $this->escape(substr($this->line, 4));
+            }
+
+            while (isset($this->lines[$this->pointer + 1]) and
+                (($this->line = $this->escape($this->lines[$this->pointer + 1])) or true) and
+                (($codeBlock and substr(ltrim($this->line), 0, 3) !== '```') or substr($this->line, 0, 4) === $this->indentStr)
             ) {
                 $this->markup .= "\n"; // @todo: donot use \n for first line
                 $this->markup .= $codeBlock ? $this->line : substr($this->line, 4);
