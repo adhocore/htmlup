@@ -8,7 +8,7 @@ namespace Ahc;
  * Supports most of the markdown specs except deep nested elements.
  * Check readme.md for the details of its features && limitations.
  *
- * @author adhocore | Jitendra Adhikari <jiten.adhikary@gmail.com>
+ * @author    adhocore | Jitendra Adhikari <jiten.adhikary@gmail.com>
  * @copyright (c) 2014 Jitendra Adhikari
  */
 class HtmlUp
@@ -312,35 +312,6 @@ class HtmlUp
             ) {
                 $this->markup .= "\n"; # @todo: donot use \n for first line
                 $this->markup .= $codeBlock ? $this->line : substr($this->line, 4);
-                ++$this->pointer;
-            }
-
-            ++$this->pointer;
-            $this->markup .= '</code></pre>';
-
-            return true;
-        }
-return false;
-        $codeBlock = preg_match('/^```\s*([\w-]+)?/', $this->line, $codeMatch);
-
-        if ($codeBlock || (!$this->inList && !$this->inQuote && $this->indent >= strlen($this->indentStr))) {
-            $lang = isset($codeMatch[1])
-                ? ' class="language-' . $codeMatch[1] . '"'
-                : '';
-
-            $this->markup .= "\n<pre><code{$lang}>";
-
-            if (!$codeBlock) {
-                $this->markup .= $this->escape(substr($this->line, 4));
-            }
-
-            while (isset($this->lines[$this->pointer + 1]) and
-                (($this->line = $this->escape($this->lines[$this->pointer + 1])) or true) and
-                (($codeBlock and substr(ltrim($this->line), 0, 3) !== '```') or substr($this->line, 0, 4) === $this->indentStr)
-            ) {
-                $this->markup .= "\n"; // @todo: donot use \n for first line
-                $this->markup .= $codeBlock ? $this->line : substr($this->line, 4);
-
                 ++$this->pointer;
             }
 
