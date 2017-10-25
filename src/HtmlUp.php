@@ -13,6 +13,19 @@ namespace Ahc;
  */
 class HtmlUp
 {
+    const RE_URL       = '~<(https?:[\/]{2}[^\s]+?)>~';
+    const RE_RAW       = '/^<\/?\w.*?\/?>/';
+    const RE_EMAIL     = '~<(\S+?@\S+?)>~';
+    const RE_MD_IMG    = '~!\[(.+?)\]\s*\((.+?)\s*(".+?")?\)~';
+    const RE_MD_URL    = '~\[(.+?)\]\s*\((.+?)\s*(".+?")?\)~';
+    const RE_MD_FONT   = '!(\*{1,2}|_{1,2}|`|~~)(.+?)\\1!';
+    const RE_MD_QUOTE  = '~^\s*(>+)\s+~';
+    const RE_MD_SETEXT = '~^\s*(={3,}|-{3,})\s*$~';
+    const RE_MD_CODE   = '/^```\s*([\w-]+)?/';
+    const RE_MD_RULE   = '~^(_{3,}|\*{3,}|\-{3,})$~';
+    const RE_MD_TCOL   = '~(\|\s*\:)?\s*\-{3,}\s*(\:\s*\|)?~';
+    const RE_MD_OL     = '/^\d+\. /';
+
     protected $lines       = [];
     protected $stackList   = [];
     protected $stackBlock  = [];
@@ -23,7 +36,6 @@ class HtmlUp
     protected $quoteLevel  = 0;
     protected $indent      = 0;
     protected $nextIndent  = 0;
-    protected $lastPointer = 0;
 
     protected $indentStr       = '';
     protected $line            = '';
@@ -64,8 +76,7 @@ class HtmlUp
         $markdown = str_replace("\t", $this->indentStr, $markdown);
         $markdown = str_replace(["\r\n", "\r"], "\n", $markdown);
 
-        $this->lines       = array_merge([''], explode("\n", $markdown), ['']);
-        $this->lastPointer = count($this->lines) - 1;
+        $this->lines = array_merge([''], explode("\n", $markdown), ['']);
     }
 
     public function __toString()
@@ -99,7 +110,6 @@ class HtmlUp
             $this->line        = $this->lines[$this->pointer];
             $this->trimmedLine = trim($this->line);
 
-            // flush stacks at the end of block
             if ($this->flush() || $this->raw()) {
                 continue;
             }
@@ -111,7 +121,6 @@ class HtmlUp
             $this->trimmedNextLine = trim($this->nextLine);
             $this->nextIndent      = strlen($this->nextLine) - strlen(ltrim($this->nextLine));
 
-            // blockquote
             $this->quote();
 
             if ($this->atx() || $this->setext() || $this->code() || $this->rule() || $this->listt()) {
@@ -141,14 +150,14 @@ class HtmlUp
     {
         // URLs.
         $this->markup = preg_replace(
-            '~<(https?:[\/]{2}[^\s]+?)>~',
+            static::RE_URL,
             '<a href="$1">$1</a>',
             $this->markup
         );
 
         // Emails.
         $this->markup = preg_replace(
-            '~<(\S+?@\S+?)>~',
+            static::RE_EMAIL,
             '<a href="mailto:$1">$1</a>',
             $this->markup
         );
@@ -157,7 +166,7 @@ class HtmlUp
     protected function anchors()
     {
         // Images.
-        $this->markup = preg_replace_callback('~!\[(.+?)\]\s*\((.+?)\s*(".+?")?\)~', function ($img) {
+        $this->markup = preg_replace_callback(static::RE_MD_IMG, function ($img) {
             $title = isset($img[3]) ? " title={$img[3]} " : '';
             $alt   = $img[1] ? " alt=\"{$img[1]}\" " : '';
 
@@ -165,7 +174,7 @@ class HtmlUp
         }, $this->markup);
 
         // Anchors.
-        $this->markup = preg_replace_callback('~\[(.+?)\]\s*\((.+?)\s*(".+?")?\)~', function ($a) {
+        $this->markup = preg_replace_callback(static::RE_MD_URL, function ($a) {
             $title = isset($a[3]) ? " title={$a[3]} " : '';
 
             return "<a href=\"{$a[2]}\"{$title}>{$a[1]}</a>";
@@ -176,18 +185,22 @@ class HtmlUp
     protected function spans()
     {
         // em/code/strong/del
-        $this->markup = preg_replace_callback('!(\*{1,2}|_{1,2}|`|~~)(.+?)\\1!', function ($em) {
-            switch (true) {
-                case substr($em[1], 0, 2) === '**':
-                case substr($em[1], 0, 2) === '__':
+        $this->markup = preg_replace_callback(static::RE_MD_FONT, function ($em) {
+            switch (substr($em[1], 0, 2)) {
+                case  '**':
+                case '__':
                     $tag = 'strong';
                     break;
-                case substr($em[1], 0, 2) === '~~':
+
+                case '~~':
                     $tag = 'del';
                     break;
-                case $em[1] === '*': case $em[1] === '_':
+
+                case $em[1] === '*':
+                case $em[1] === '_':
                     $tag = 'em';
                     break;
+
                 default:
                     $tag = 'code';
                     $em[2] = htmlspecialchars($em[2]);
@@ -221,9 +234,11 @@ class HtmlUp
         while ($this->stackList) {
             $this->markup .= array_pop($this->stackList);
         }
+
         while ($this->stackBlock) {
             $this->markup .= array_pop($this->stackBlock);
         }
+
         while ($this->stackTable) {
             $this->markup .= array_pop($this->stackTable);
         }
@@ -237,7 +252,7 @@ class HtmlUp
 
     protected function raw()
     {
-        if ($this->inHtml || preg_match('/^<\/?\w.*?\/?>/', $this->trimmedLine)) {
+        if ($this->inHtml || preg_match(static::RE_RAW, $this->trimmedLine)) {
             $this->markup .= "\n$this->line";
             if (!$this->inHtml && empty($this->lines[$this->pointer - 1])) {
                 $this->inHtml = true;
@@ -249,7 +264,7 @@ class HtmlUp
 
     protected function quote()
     {
-        if (preg_match('~^\s*(>+)\s+~', $this->line, $quoteMatch)) {
+        if (preg_match(static::RE_MD_QUOTE, $this->line, $quoteMatch)) {
             $this->line        = substr($this->line, strlen($quoteMatch[0]));
             $this->trimmedLine = trim($this->line);
 
@@ -268,10 +283,10 @@ class HtmlUp
     protected function atx()
     {
         if (isset($this->trimmedLine[0]) && $this->trimmedLine[0] === '#') {
-            $level = strlen($this->trimmedLine) - strlen($segment = ltrim($this->trimmedLine, '#'));
+            $level = strlen($this->trimmedLine) - strlen(ltrim($this->trimmedLine, '#'));
 
             if ($level < 7) {
-                $this->markup .= "\n<h{$level}>" . ltrim($segment) . "</h{$level}>";
+                $this->markup .= "\n<h{$level}>" . ltrim(ltrim($this->trimmedLine, '# ')) . "</h{$level}>";
                 
                 return true;
             }
@@ -280,7 +295,7 @@ class HtmlUp
 
     protected function setext()
     {
-        if (preg_match('~^\s*(={3,}|-{3,})\s*$~', $this->nextLine)) {
+        if (preg_match(static::RE_MD_SETEXT, $this->nextLine)) {
             $level = trim($this->nextLine, '- ') === '' ? 2 : 1;
 
             $this->markup .= "\n<h{$level}>{$this->trimmedLine}</h{$level}>";
@@ -293,7 +308,7 @@ class HtmlUp
 
     protected function code()
     {
-        $codeBlock = preg_match('/^```\s*([\w-]+)?/', $this->line, $codeMatch);
+        $codeBlock = preg_match(static::RE_MD_CODE, $this->line, $codeMatch);
 
         if ($codeBlock || (empty($this->inList) && empty($this->inQuote) && $this->indent >= 4)) {
             $lang = isset($codeMatch[1])
@@ -306,16 +321,21 @@ class HtmlUp
                 $this->markup .= $this->escape(substr($this->line, 4));
             }
 
-            while (isset($this->lines[$this->pointer + 1]) and
-                (($this->line = htmlspecialchars($this->lines[$this->pointer + 1])) || true) and
-                (($codeBlock && substr(ltrim($this->line), 0, 3) !== '```') || substr($this->line, 0, 4) === '    ')
-            ) {
-                $this->markup .= "\n"; # @todo: donot use \n for first line
-                $this->markup .= $codeBlock ? $this->line : substr($this->line, 4);
-                ++$this->pointer;
+            while (isset($this->lines[$this->pointer + 1])) {
+                $this->line = $this->escape($this->lines[$this->pointer + 1]);
+
+                if (($codeBlock && substr(ltrim($this->line), 0, 3) !== '```')
+                    || substr($this->line, 0, 4) === $this->indentStr
+                ) {
+                    $this->markup .= "\n"; # @todo: donot use \n for first line
+                    $this->markup .= $codeBlock ? $this->line : substr($this->line, 4);
+
+                    ++$this->pointer;
+                }
             }
 
             ++$this->pointer;
+
             $this->markup .= '</code></pre>';
 
             return true;
@@ -325,7 +345,7 @@ class HtmlUp
     protected function rule()
     {
         if ($this->trimmedPrevLine === ''
-            && preg_match('~^(_{3,}|\*{3,}|\-{3,})$~', $this->trimmedLine)
+            && preg_match(static::RE_MD_RULE, $this->trimmedLine)
         ) {
             $this->markup .= "\n<hr />";
 
@@ -337,7 +357,7 @@ class HtmlUp
     {
         $isUl = in_array(substr($this->trimmedLine, 0, 2), ['- ', '* ', '+ ']);
 
-        if ($isUl || preg_match('/^\d+\. /', $this->trimmedLine)) {
+        if ($isUl || preg_match(static::RE_MD_OL, $this->trimmedLine)) {
             $wrapper = $isUl ? 'ul' : 'ol';
 
             if (!$this->inList) {
@@ -352,7 +372,7 @@ class HtmlUp
 
             $isUl = in_array(substr($this->trimmedNextLine, 0, 2), ['- ', '* ', '+ ']);
 
-            if ($isUl || preg_match('/^\d+\. /', $this->trimmedNextLine)) {
+            if ($isUl || preg_match(static::RE_MD_OL, $this->trimmedNextLine)) {
                 $wrapper = $isUl ? 'ul' : 'ol';
                 if ($this->nextIndent > $this->indent) {
                     $this->stackList[] = "</li>\n";
@@ -387,34 +407,39 @@ class HtmlUp
 
         if (!$this->inTable) {
             $hdrCt = substr_count(trim($this->trimmedLine, '|'), '|');
-            $colCt = preg_match_all('~(\|\s*\:)?\s*\-{3,}\s*(\:\s*\|)?~', trim($this->trimmedNextLine, '|'));
+            $colCt = preg_match_all(static::RE_MD_TCOL, trim($this->trimmedNextLine, '|'));
+
             if ($hdrCt > 0 && $colCt > 0 && $hdrCt <= $colCt) {
-                $this->inTable = true;
                 ++$this->pointer;
-                $this->markup .= "<table>\n<thead>\n<tr>\n";
+ 
+                $this->inTable     = true;
+                $this->markup     .= "<table>\n<thead>\n<tr>\n";
                 $this->trimmedLine = trim($this->trimmedLine, '|');
+
                 foreach (explode('|', $this->trimmedLine) as $hdr) {
-                    $hdr = trim($hdr);
-                    $this->markup .= "<th>{$hdr}</th>\n";
+                    $this->markup .= '<th>' . trim($hdr) . "</th>\n";
                 }
+
                 $this->markup .= "</tr>\n</thead>\n<tbody>\n";
 
                 return true;
             }
         } else {
             $this->markup .= "<tr>\n";
+
             foreach (explode('|', trim($this->trimmedLine, '|')) as $i => $col) {
                 if ($i > $hdrCt) {
                     break;
                 }
-                $col = trim($col);
+                $col           = trim($col);
                 $this->markup .= "<td>{$col}</td>\n";
             }
+
             $this->markup .= "</tr>\n";
-            if (empty($this->trimmedNextLine) or
-                !substr_count(trim($this->trimmedNextLine, '|'), '|')
-            ) {
-                $this->inTable = null;
+
+            if (empty($this->trimmedNextLine) || !substr_count(trim($this->trimmedNextLine, '|'), '|')) {
+                $hdrCt              = 0;
+                $this->inTable      = false;
                 $this->stackTable[] = "</tbody>\n</table>";
             }
 
@@ -424,17 +449,12 @@ class HtmlUp
 
     protected function paragraph()
     {
-        if (!$this->inPara) {
-            $this->markup .= "\n<p>";
-        } else {
-            $this->markup .= "\n<br />";
-        }
-
-        $this->markup .= "{$this->trimmedLine}";
+        $this->markup .= $this->inPara ? "\n<br />" : "\n<p>";
+        $this->markup .= $this->trimmedLine;
 
         if (empty($this->trimmedNextLine)) {
             $this->markup .= '</p>';
-            $this->inPara = null;
+            $this->inPara = false;
         } else {
             $this->inPara = true;
         }
