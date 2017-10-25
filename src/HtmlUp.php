@@ -89,8 +89,8 @@ class HtmlUp
         $lastPointer = count($this->lines) - 1;
 
         while (isset($this->lines[++$this->pointer])) {
-            $line        = $this->lines[$this->pointer];
-            $this->trimmedLine = trim($line);
+            $this->line        = $this->lines[$this->pointer];
+            $this->trimmedLine = trim($this->line);
 
             // flush stacks at the end of block
             if ($this->flush()) {
@@ -98,12 +98,7 @@ class HtmlUp
             }
 
             // raw html
-            if (preg_match('/^<\/?\w.*?\/?>/', $this->trimmedLine) || isset($inHtml)) {
-                $this->markup .= "\n$line";
-                if (empty($inHtml) && empty($this->lines[$this->pointer-1])) {
-                    $inHtml = true;
-                }
-
+            if ($this->raw()) {
                 continue;
             }
 
@@ -112,16 +107,16 @@ class HtmlUp
                 : null;
             $trimmedNextLine = $nextLine ? trim($nextLine) : null;
 
-            $indent     = strlen($line) - strlen(ltrim($line));
+            $indent     = strlen($this->line) - strlen(ltrim($this->line));
             $nextIndent = $nextLine ? strlen($nextLine) - strlen(ltrim($nextLine)) : 0;
 
             $nextMark1  = isset($trimmedNextLine[0]) ? $trimmedNextLine[0] : null;
             $nextMark12 = $trimmedNextLine ? substr($trimmedNextLine, 0, 2) : null;
 
             // blockquote
-            if (preg_match('~^\s*(>+)\s+~', $line, $quoteMatch)) {
-                $line = substr($line, strlen($quoteMatch[0]));
-                $this->trimmedLine = trim($line);
+            if (preg_match('~^\s*(>+)\s+~', $this->line, $quoteMatch)) {
+                $this->line = substr($this->line, strlen($quoteMatch[0]));
+                $this->trimmedLine = trim($this->line);
 
                 if (empty($inQuote) || $quoteLevel < strlen($quoteMatch[1])) {
                     $this->markup .= "\n<blockquote>";
@@ -155,7 +150,7 @@ class HtmlUp
             }
 
             // fence code
-            if ($codeBlock = preg_match('/^```\s*([\w-]+)?/', $line, $codeMatch)
+            if ($codeBlock = preg_match('/^```\s*([\w-]+)?/', $this->line, $codeMatch)
                 || (empty($inList) && empty($inQuote) && $indent >= 4)
             ) {
                 $lang = ($codeBlock && isset($codeMatch[1]))
@@ -164,15 +159,15 @@ class HtmlUp
                 $this->markup .= "\n<pre><code{$lang}>";
 
                 if (!$codeBlock) {
-                    $this->markup .= htmlspecialchars(substr($line, 4));
+                    $this->markup .= htmlspecialchars(substr($this->line, 4));
                 }
 
                 while (isset($this->lines[$this->pointer + 1]) and
-                    (($line = htmlspecialchars($this->lines[$this->pointer + 1])) || true) and
-                    (($codeBlock && substr(ltrim($line), 0, 3) !== '```') || substr($line, 0, 4) === '    ')
+                    (($this->line = htmlspecialchars($this->lines[$this->pointer + 1])) || true) and
+                    (($codeBlock && substr(ltrim($this->line), 0, 3) !== '```') || substr($this->line, 0, 4) === '    ')
                 ) {
                     $this->markup .= "\n"; # @todo: donot use \n for first line
-                    $this->markup .= $codeBlock ? $line : substr($line, 4);
+                    $this->markup .= $codeBlock ? $this->line : substr($this->line, 4);
                     ++$this->pointer;
                 }
 
@@ -376,5 +371,17 @@ class HtmlUp
         $this->reset(false);
 
         return true;
+    }
+
+    protected function raw()
+    {
+        if ($this->inHtml || preg_match('/^<\/?\w.*?\/?>/', $this->trimmedLine)) {
+            $this->markup .= "\n$this->line";
+            if (!$this->inHtml && empty($this->lines[$this->pointer - 1])) {
+                $this->inHtml = true;
+            }
+
+            return true;
+        }
     }
 }
