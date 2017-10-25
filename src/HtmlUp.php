@@ -144,51 +144,7 @@ class HtmlUp
                 continue;
             }
 
-            if ($this->rule()) {
-                continue;
-            }
-
-            // list
-            if ($ul = in_array($mark12, array('- ', '* ', '+ ')) or
-                preg_match('/^\d+\. /', $this->trimmedLine)
-            ) {
-                $wrapper = $ul ? 'ul' : 'ol';
-                if (empty($inList)) {
-                    $this->stackList[] = "</$wrapper>";
-                    $this->markup .= "\n<$wrapper>\n";
-                    $inList = true;
-                    ++$nestLevel;
-                }
-
-                $this->markup .= '<li>'.ltrim($this->trimmedLine, '-*0123456789. ');
-
-                if ($ul = in_array($nextMark12, array('- ', '* ', '+ ')) or
-                    preg_match('/^\d+\. /', $this->trimmedNextLine)
-                ) {
-                    $wrapper = $ul ? 'ul' : 'ol';
-                    if ($this->nextIndent > $this->indent) {
-                        $this->stackList[] = "</li>\n";
-                        $this->stackList[] = "</$wrapper>";
-                        $this->markup .= "\n<$wrapper>\n";
-                        ++$nestLevel;
-                    } else {
-                        $this->markup .= "</li>\n";
-                    }
-
-                    // handle nested lists ending
-                    if ($this->nextIndent < $this->indent) {
-                        $shift = intval(($this->indent - $this->nextIndent) / 4);
-                        while ($shift--) {
-                            $this->markup .= array_pop($this->stackList);
-                            if ($nestLevel > 2) {
-                                $this->markup .= array_pop($this->stackList);
-                            }
-                        }
-                    }
-                } else {
-                    $this->markup .= "</li>\n";
-                }
-
+            if ($this->rule() || $this->listt()) {
                 continue;
             }
 
@@ -436,45 +392,40 @@ class HtmlUp
 
     protected function listt()
     {
-        if ($ul = in_array(substr($this->trimmedLine, 0, 2), ['- ', '* ', '+ '])
-            || preg_match('/^\d+\. /', $this->trimmedLine)
-        ) {
-            $wrapper = $ul ? 'ul' : 'ol';
+        $isUl = in_array(substr($this->trimmedLine, 0, 2), ['- ', '* ', '+ ']);
+
+        if ($isUl || preg_match('/^\d+\. /', $this->trimmedLine)) {
+            $wrapper = $isUl ? 'ul' : 'ol';
 
             if (!$this->inList) {
-                $this->stackList[]   = "</$wrapper>";
-                $this->markup .= "\n<$wrapper>\n";
-
-                $inList = true;
+                $this->stackList[] = "</$wrapper>";
+                $this->markup     .= "\n<$wrapper>\n";
+                $this->inList      = true;
 
                 ++$this->listLevel;
             }
 
-            $this->markup .= '<li>' . ltrim($this->trimmedLine, '-*0123456789. ');
+            $this->markup .= '<li>'.ltrim($this->trimmedLine, '-*0123456789. ');
 
-            if ($ul = in_array(in_array(substr($this->trimmedNextLine, 0, 2), ['- ', '* ', '+ ']))
-                || preg_match('/^\d+\. /', $this->trimmedNextLine)
-            ) {
-                $wrapper = $ul ? 'ul' : 'ol';
+            $isUl = in_array(substr($this->trimmedNextLine, 0, 2), ['- ', '* ', '+ ']);
 
+            if ($isUl || preg_match('/^\d+\. /', $this->trimmedNextLine)) {
+                $wrapper = $isUl ? 'ul' : 'ol';
                 if ($this->nextIndent > $this->indent) {
                     $this->stackList[] = "</li>\n";
                     $this->stackList[] = "</$wrapper>";
-
-                    $this->markup .= "\n<$wrapper>\n";
+                    $this->markup     .= "\n<$wrapper>\n";
 
                     ++$this->listLevel;
                 } else {
                     $this->markup .= "</li>\n";
                 }
 
-                // Handle nested lists ending.
                 if ($this->nextIndent < $this->indent) {
-                    $shift = intval(($this->indent - $this->nextIndent) / strlen($this->indentStr));
+                    $shift = intval(($this->indent - $this->nextIndent) / 4);
                     while ($shift--) {
                         $this->markup .= array_pop($this->stackList);
-
-                        if ($this->listLevel > 2) {
+                        if ($this->nestLevel > 2) {
                             $this->markup .= array_pop($this->stackList);
                         }
                     }
