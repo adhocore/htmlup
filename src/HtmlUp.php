@@ -208,7 +208,7 @@ class HtmlUp
 
                 default:
                     $tag = 'code';
-                    $em[2] = htmlspecialchars($em[2]);
+                    $em[2] = $this->escape($em[2]);
             }
 
             return "<$tag>{$em[2]}</$tag>";
@@ -313,7 +313,7 @@ class HtmlUp
 
     protected function code()
     {
-        $codeBlock = preg_match(static::RE_MD_CODE, $this->line, $codeMatch);
+        $codeBlock = (bool) preg_match(static::RE_MD_CODE, $this->line, $codeMatch);
 
         if ($codeBlock || (empty($this->inList) && empty($this->inQuote) && $this->indent >= 4)) {
             $lang = isset($codeMatch[1])
@@ -326,24 +326,29 @@ class HtmlUp
                 $this->markup .= $this->escape(substr($this->line, 4));
             }
 
-            while (isset($this->lines[$this->pointer + 1])) {
-                $this->line = $this->escape($this->lines[$this->pointer + 1]);
-
-                if (($codeBlock && substr(ltrim($this->line), 0, 3) !== '```')
-                    || substr($this->line, 0, 4) === $this->indentStr
-                ) {
-                    $this->markup .= "\n"; // @todo: donot use \n for first line
-                    $this->markup .= $codeBlock ? $this->line : substr($this->line, 4);
-
-                    ++$this->pointer;
-                }
-            }
+            $this->codeInternal($codeBlock);
 
             ++$this->pointer;
 
             $this->markup .= '</code></pre>';
 
             return true;
+        }
+    }
+
+    public function codeInternal($codeBlock)
+    {
+        while (isset($this->lines[$this->pointer + 1])) {
+            $this->line = $this->escape($this->lines[$this->pointer + 1]);
+
+            if (($codeBlock && substr(ltrim($this->line), 0, 3) !== '```')
+                || substr($this->line, 0, 4) === $this->indentStr
+            ) {
+                $this->markup .= "\n"; // @todo: donot use \n for first line
+                $this->markup .= $codeBlock ? $this->line : substr($this->line, 4);
+
+                ++$this->pointer;
+            }
         }
     }
 
