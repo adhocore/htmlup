@@ -155,22 +155,8 @@ class HtmlUp
                 continue;
             }
 
-            if ($this->table()) {
+            if ($this->table() || $this->paragraph()) {
                 continue;
-            }
-
-            // paragraph
-            if (empty($inPara)) {
-                $this->markup .= "\n<p>";
-            } else {
-                $this->markup .= "\n<br />";
-            }
-            $this->markup .= "{$this->trimmedLine}";
-            if (empty($this->trimmedNextLine)) {
-                $this->markup .= '</p>';
-                $inPara = null;
-            } else {
-                $inPara = true;
             }
         }
 
