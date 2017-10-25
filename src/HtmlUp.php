@@ -380,34 +380,41 @@ class HtmlUp
 
             $this->markup .= '<li>' . ltrim($this->trimmedLine, '-*0123456789. ');
 
-            $isUl = in_array(substr($this->trimmedNextLine, 0, 2), ['- ', '* ', '+ ']);
+            $this->listInternal();
 
-            if ($isUl || preg_match(static::RE_MD_OL, $this->trimmedNextLine)) {
-                $wrapper = $isUl ? 'ul' : 'ol';
-                if ($this->nextIndent > $this->indent) {
-                    $this->stackList[] = "</li>\n";
-                    $this->stackList[] = "</$wrapper>";
-                    $this->markup .= "\n<$wrapper>\n";
+            return true;
+        }
+    }
 
-                    ++$this->listLevel;
-                } else {
-                    $this->markup .= "</li>\n";
-                }
+    protected function listInternal()
+    {
+        $isUl = in_array(substr($this->trimmedNextLine, 0, 2), ['- ', '* ', '+ ']);
 
-                if ($this->nextIndent < $this->indent) {
-                    $shift = intval(($this->indent - $this->nextIndent) / 4);
-                    while ($shift--) {
-                        $this->markup .= array_pop($this->stackList);
-                        if ($this->listLevel > 2) {
-                            $this->markup .= array_pop($this->stackList);
-                        }
-                    }
-                }
+        if ($isUl || preg_match(static::RE_MD_OL, $this->trimmedNextLine)) {
+            $wrapper = $isUl ? 'ul' : 'ol';
+            if ($this->nextIndent > $this->indent) {
+                $this->stackList[] = "</li>\n";
+                $this->stackList[] = "</$wrapper>";
+                $this->markup .= "\n<$wrapper>\n";
+
+                ++$this->listLevel;
             } else {
                 $this->markup .= "</li>\n";
             }
 
-            return true;
+            if ($this->nextIndent < $this->indent) {
+                $shift = intval(($this->indent - $this->nextIndent) / 4);
+
+                while ($shift--) {
+                    $this->markup .= array_pop($this->stackList);
+
+                    if ($this->listLevel > 2) {
+                        $this->markup .= array_pop($this->stackList);
+                    }
+                }
+            }
+        } else {
+            $this->markup .= "</li>\n";
         }
     }
 
