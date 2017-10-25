@@ -76,7 +76,7 @@ class HtmlUp
     public function parse($markdown = null)
     {
         if (null !== $markdown) {
-            $this->resetExcept();
+            $this->reset(true);
 
             $this->scan($markdown);
         }
@@ -85,9 +85,14 @@ class HtmlUp
             return '';
         }
 
-        $nestLevel   = $quoteLevel = 0;
-        $lastPointer = count($this->lines) - 1;
+        $this->parseBlockElements();
+        $this->parseSpanElements();
 
+        return $this->markup;
+    }
+
+    protected function parseBlockElements()
+    {
         while (isset($this->lines[++$this->pointer])) {
             list($this->prevLine, $this->trimmedPrevLine) = [$this->line, $this->trimmedLine];
 
@@ -119,40 +124,57 @@ class HtmlUp
                 continue;
             }
 
-            if ($this->table() || $this->paragraph()) {
-                continue;
-            }
+            $this->table() || $this->paragraph();
         }
+    }
 
-        // urls
+    protected function parseSpanElements()
+    {
+        $this->links();
+
+        $this->anchors();
+
+        $this->spans();
+    }
+
+    protected function links()
+    {
+        // URLs.
         $this->markup = preg_replace(
             '~<(https?:[\/]{2}[^\s]+?)>~',
             '<a href="$1">$1</a>',
             $this->markup
         );
 
-        // emails
+        // Emails.
         $this->markup = preg_replace(
             '~<(\S+?@\S+?)>~',
             '<a href="mailto:$1">$1</a>',
             $this->markup
         );
+    }
 
-        // images
+    protected function anchors()
+    {
+        // Images.
         $this->markup = preg_replace_callback('~!\[(.+?)\]\s*\((.+?)\s*(".+?")?\)~', function ($img) {
             $title = isset($img[3]) ? " title={$img[3]} " : '';
-            $alt = $img[1] ? " alt=\"{$img[1]}\" " : '';
+            $alt   = $img[1] ? " alt=\"{$img[1]}\" " : '';
 
             return "<img src=\"{$img[2]}\"{$title}{$alt}/>";
         }, $this->markup);
 
-        // anchors
+        // Anchors.
         $this->markup = preg_replace_callback('~\[(.+?)\]\s*\((.+?)\s*(".+?")?\)~', function ($a) {
             $title = isset($a[3]) ? " title={$a[3]} " : '';
 
             return "<a href=\"{$a[2]}\"{$title}>{$a[1]}</a>";
         }, $this->markup);
 
+    }
+
+    protected function spans()
+    {
         // em/code/strong/del
         $this->markup = preg_replace_callback('!(\*{1,2}|_{1,2}|`|~~)(.+?)\\1!', function ($em) {
             switch (true) {
@@ -173,16 +195,14 @@ class HtmlUp
 
             return "<$tag>{$em[2]}</$tag>";
         }, $this->markup);
-
-        return $this->markup;
     }
 
-    public function escape($input)
+    protected function escape($input)
     {
         return htmlspecialchars($input);
     }
 
-    public function reset($all = false)
+    protected function reset($all = false)
     {
         $except = $all ? [] : array_fill_keys(['lines', 'pointer', 'markup'], true);
 
