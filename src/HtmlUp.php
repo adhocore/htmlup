@@ -86,36 +86,19 @@ class HtmlUp
 
         $nestLevel   = $quoteLevel = 0;
         $indent      = $nextIndent = 0;
-        $stackList   = $stackBlock = array();
-        $stackTable  = array();
         $lastPointer = count($this->lines) - 1;
 
         while (isset($this->lines[++$this->pointer])) {
             $line        = $this->lines[$this->pointer];
-            $trimmedLine = trim($line);
+            $this->trimmedLine = trim($line);
 
             // flush stacks at the end of block
-            if (empty($trimmedLine)) {
-                while ($stackList) {
-                    $this->markup .= array_pop($stackList);
-                }
-                while ($stackBlock) {
-                    $this->markup .= array_pop($stackBlock);
-                }
-                while ($stackTable) {
-                    $this->markup .= array_pop($stackTable);
-                }
-
-                $this->markup .= "\n";
-
-                $inList    = $inQuote = $inPara = $inHtml = null;
-                $nestLevel = $quoteLevel = 0;
-
+            if ($this->flush()) {
                 continue;
             }
 
             // raw html
-            if (preg_match('/^<\/?\w.*?\/?>/', $trimmedLine) || isset($inHtml)) {
+            if (preg_match('/^<\/?\w.*?\/?>/', $this->trimmedLine) || isset($inHtml)) {
                 $this->markup .= "\n$line";
                 if (empty($inHtml) && empty($this->lines[$this->pointer-1])) {
                     $inHtml = true;
@@ -138,25 +121,25 @@ class HtmlUp
             // blockquote
             if (preg_match('~^\s*(>+)\s+~', $line, $quoteMatch)) {
                 $line = substr($line, strlen($quoteMatch[0]));
-                $trimmedLine = trim($line);
+                $this->trimmedLine = trim($line);
 
                 if (empty($inQuote) || $quoteLevel < strlen($quoteMatch[1])) {
                     $this->markup .= "\n<blockquote>";
-                    $stackBlock[] = "\n</blockquote>";
+                    $this->stackBlock[] = "\n</blockquote>";
                     ++$quoteLevel;
                 }
 
                 $inQuote = true;
             }
 
-            $mark1  = $trimmedLine[0];
-            $mark12 = substr($trimmedLine, 0, 2);
+            $mark1  = $this->trimmedLine[0];
+            $mark12 = substr($this->trimmedLine, 0, 2);
 
             // atx
             if ($mark1 === '#') {
-                $level = strlen($trimmedLine) - strlen(ltrim($trimmedLine, '#'));
+                $level = strlen($this->trimmedLine) - strlen(ltrim($this->trimmedLine, '#'));
                 if ($level < 7) {
-                    $this->markup .= "\n<h{$level}>".ltrim($trimmedLine, '# ')."</h{$level}>";
+                    $this->markup .= "\n<h{$level}>".ltrim($this->trimmedLine, '# ')."</h{$level}>";
 
                     continue;
                 }
@@ -165,7 +148,7 @@ class HtmlUp
             // setext
             if (preg_match('~^\s*(={3,}|-{3,})\s*$~', $nextLine)) {
                 $level = trim($nextLine, '- ') === '' ? '2' : '1';
-                $this->markup .= "\n<h{$level}>{$trimmedLine}</h{$level}>";
+                $this->markup .= "\n<h{$level}>{$this->trimmedLine}</h{$level}>";
                 ++$this->pointer;
 
                 continue;
@@ -202,7 +185,7 @@ class HtmlUp
             // rule
             if (isset($this->lines[$this->pointer - 1]) and
                 trim($this->lines[$this->pointer - 1]) === '' and
-                preg_match('~^(_{3,}|\*{3,}|\-{3,})$~', $trimmedLine)
+                preg_match('~^(_{3,}|\*{3,}|\-{3,})$~', $this->trimmedLine)
             ) {
                 $this->markup .= "\n<hr />";
                 continue;
@@ -210,25 +193,25 @@ class HtmlUp
 
             // list
             if ($ul = in_array($mark12, array('- ', '* ', '+ ')) or
-                preg_match('/^\d+\. /', $trimmedLine)
+                preg_match('/^\d+\. /', $this->trimmedLine)
             ) {
                 $wrapper = $ul ? 'ul' : 'ol';
                 if (empty($inList)) {
-                    $stackList[] = "</$wrapper>";
+                    $this->stackList[] = "</$wrapper>";
                     $this->markup .= "\n<$wrapper>\n";
                     $inList = true;
                     ++$nestLevel;
                 }
 
-                $this->markup .= '<li>'.ltrim($trimmedLine, '-*0123456789. ');
+                $this->markup .= '<li>'.ltrim($this->trimmedLine, '-*0123456789. ');
 
                 if ($ul = in_array($nextMark12, array('- ', '* ', '+ ')) or
                     preg_match('/^\d+\. /', $trimmedNextLine)
                 ) {
                     $wrapper = $ul ? 'ul' : 'ol';
                     if ($nextIndent > $indent) {
-                        $stackList[] = "</li>\n";
-                        $stackList[] = "</$wrapper>";
+                        $this->stackList[] = "</li>\n";
+                        $this->stackList[] = "</$wrapper>";
                         $this->markup .= "\n<$wrapper>\n";
                         ++$nestLevel;
                     } else {
@@ -239,9 +222,9 @@ class HtmlUp
                     if ($nextIndent < $indent) {
                         $shift = intval(($indent - $nextIndent) / 4);
                         while ($shift--) {
-                            $this->markup .= array_pop($stackList);
+                            $this->markup .= array_pop($this->stackList);
                             if ($nestLevel > 2) {
-                                $this->markup .= array_pop($stackList);
+                                $this->markup .= array_pop($this->stackList);
                             }
                         }
                     }
@@ -253,21 +236,21 @@ class HtmlUp
             }
 
             if (isset($inList)) {
-                $this->markup .= $trimmedLine;
+                $this->markup .= $this->trimmedLine;
                 continue;
             }
 
             // table
             if (empty($inTable)) {
-                if ($hdrCt = substr_count(trim($trimmedLine, '|'), '|') and
+                if ($hdrCt = substr_count(trim($this->trimmedLine, '|'), '|') and
                     $colCt = preg_match_all('~(\|\s*\:)?\s*\-{3,}\s*(\:\s*\|)?~', trim($trimmedNextLine, '|')) and
                     $hdrCt <= $colCt
                 ) {
                     $inTable = true;
                     ++$this->pointer;
                     $this->markup .= "<table>\n<thead>\n<tr>\n";
-                    $trimmedLine = trim($trimmedLine, '|');
-                    foreach (explode('|', $trimmedLine) as $hdr) {
+                    $this->trimmedLine = trim($this->trimmedLine, '|');
+                    foreach (explode('|', $this->trimmedLine) as $hdr) {
                         $hdr = trim($hdr);
                         $this->markup .= "<th>{$hdr}</th>\n";
                     }
@@ -276,7 +259,7 @@ class HtmlUp
                 }
             } else {
                 $this->markup .= "<tr>\n";
-                foreach (explode('|', trim($trimmedLine, '|')) as $i => $col) {
+                foreach (explode('|', trim($this->trimmedLine, '|')) as $i => $col) {
                     if ($i > $hdrCt) {
                         break;
                     }
@@ -288,7 +271,7 @@ class HtmlUp
                     !substr_count(trim($trimmedNextLine, '|'), '|')
                 ) {
                     $inTable = null;
-                    $stackTable[] = "</tbody>\n</table>";
+                    $this->stackTable[] = "</tbody>\n</table>";
                 }
 
                 continue;
@@ -300,7 +283,7 @@ class HtmlUp
             } else {
                 $this->markup .= "\n<br />";
             }
-            $this->markup .= "{$trimmedLine}";
+            $this->markup .= "{$this->trimmedLine}";
             if (empty($trimmedNextLine)) {
                 $this->markup .= '</p>';
                 $inPara = null;
@@ -360,5 +343,38 @@ class HtmlUp
         }, $this->markup);
 
         return $this->markup;
+    }
+
+    public function reset($all = false)
+    {
+        $except = $all ? [] : array_fill_keys(['lines', 'pointer', 'markup'], true);
+
+        // Reset all current values.
+        foreach (get_class_vars(__CLASS__) as $prop => $value) {
+            isset($except[$prop]) || $this->{$prop} = $value;
+        }
+    }
+
+    protected function flush()
+    {
+        if ('' !== $this->trimmedLine) {
+            return false;
+        }
+
+        while ($this->stackList) {
+            $this->markup .= array_pop($this->stackList);
+        }
+        while ($this->stackBlock) {
+            $this->markup .= array_pop($this->stackBlock);
+        }
+        while ($this->stackTable) {
+            $this->markup .= array_pop($this->stackTable);
+        }
+
+        $this->markup .= "\n";
+
+        $this->reset(false);
+
+        return true;
     }
 }
