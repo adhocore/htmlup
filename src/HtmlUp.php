@@ -38,6 +38,7 @@ class HtmlUp
     protected $inQuote = false;
     protected $inPara  = false;
     protected $inHtml  = false;
+    protected $inTable = false;
 
     /**
      * Constructor.
@@ -148,45 +149,13 @@ class HtmlUp
                 continue;
             }
 
-            if (isset($inList)) {
+            if ($this->inList) {
                 $this->markup .= $this->trimmedLine;
+
                 continue;
             }
 
-            // table
-            if (empty($inTable)) {
-                if ($hdrCt = substr_count(trim($this->trimmedLine, '|'), '|') and
-                    $colCt = preg_match_all('~(\|\s*\:)?\s*\-{3,}\s*(\:\s*\|)?~', trim($this->trimmedNextLine, '|')) and
-                    $hdrCt <= $colCt
-                ) {
-                    $inTable = true;
-                    ++$this->pointer;
-                    $this->markup .= "<table>\n<thead>\n<tr>\n";
-                    $this->trimmedLine = trim($this->trimmedLine, '|');
-                    foreach (explode('|', $this->trimmedLine) as $hdr) {
-                        $hdr = trim($hdr);
-                        $this->markup .= "<th>{$hdr}</th>\n";
-                    }
-                    $this->markup .= "</tr>\n</thead>\n<tbody>\n";
-                    continue;
-                }
-            } else {
-                $this->markup .= "<tr>\n";
-                foreach (explode('|', trim($this->trimmedLine, '|')) as $i => $col) {
-                    if ($i > $hdrCt) {
-                        break;
-                    }
-                    $col = trim($col);
-                    $this->markup .= "<td>{$col}</td>\n";
-                }
-                $this->markup .= "</tr>\n";
-                if (empty($this->trimmedNextLine) or
-                    !substr_count(trim($this->trimmedNextLine, '|'), '|')
-                ) {
-                    $inTable = null;
-                    $this->stackTable[] = "</tbody>\n</table>";
-                }
-
+            if ($this->table()) {
                 continue;
             }
 
@@ -440,11 +409,12 @@ class HtmlUp
 
     protected function table()
     {
+        static $hdrCt;
+
         if (!$this->inTable) {
-            if ($hdrCt = substr_count(trim($this->trimmedLine, '|'), '|') and
-                $colCt = preg_match_all('~(\|\s*\:)?\s*\-{3,}\s*(\:\s*\|)?~', trim($this->trimmedNextLine, '|')) and
-                $hdrCt <= $colCt
-            ) {
+            $hdrCt = substr_count(trim($this->trimmedLine, '|'), '|');
+            $colCt = preg_match_all('~(\|\s*\:)?\s*\-{3,}\s*(\:\s*\|)?~', trim($this->trimmedNextLine, '|'));
+            if ($hdrCt > 0 && $colCt > 0 && $hdrCt <= $colCt) {
                 $this->inTable = true;
                 ++$this->pointer;
                 $this->markup .= "<table>\n<thead>\n<tr>\n";
