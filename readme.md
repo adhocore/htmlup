@@ -1,6 +1,6 @@
 # htmlup [![build status](https://travis-ci.org/adhocore/htmlup.svg?branch=master)](https://travis-ci.org/adhocore/htmlup)
 
-`htmlup` is ultra lightweight (packed in just _250 ncloc_) and uber speedy markdown to html parser written in PHP.
+`htmlup` is ultra lightweight and uber speedy markdown to html parser written in PHP.
 **Concept** - it splits the markdown into lines and parses to markup one by one, finally applies markdown syntaxes on the markup.
 It supports most of the markdown as in [specs](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet "cheatsheet"). 
 
