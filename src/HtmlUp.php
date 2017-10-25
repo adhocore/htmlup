@@ -112,14 +112,8 @@ class HtmlUp
             $mark1  = $this->trimmedLine[0];
             $mark12 = substr($this->trimmedLine, 0, 2);
 
-            // atx
-            if ($mark1 === '#') {
-                $level = strlen($this->trimmedLine) - strlen(ltrim($this->trimmedLine, '#'));
-                if ($level < 7) {
-                    $this->markup .= "\n<h{$level}>".ltrim($this->trimmedLine, '# ')."</h{$level}>";
-
-                    continue;
-                }
+            if ($this->atx()) {
+                continue;
             }
 
             // setext
@@ -388,13 +382,13 @@ class HtmlUp
     protected function atx()
     {
         if (isset($this->trimmedLine[0]) && $this->trimmedLine[0] === '#') {
-            $level = strlen($this->trimmedLine) - strlen($segment = ltrim($this->trimmedLine, '# '));
+            $level = strlen($this->trimmedLine) - strlen($segment = ltrim($this->trimmedLine, '#'));
 
             if ($level < 7) {
-                $this->markup .= "\n<h{$level}>{$segment}</h{$level}>";
+                $this->markup .= "\n<h{$level}>" . ltrim($segment) . "</h{$level}>";
+                
+                return true;
             }
-
-            return true;
         }
     }
 
