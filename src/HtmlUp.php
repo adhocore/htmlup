@@ -104,14 +104,8 @@ class HtmlUp
             $this->trimmedNextLine = trim($this->nextLine);
             $this->nextIndent      = strlen($this->nextLine) - strlen(ltrim($this->nextLine));
 
-            $nextMark1  = isset($this->trimmedNextLine[0]) ? $this->trimmedNextLine[0] : null;
-            $nextMark12 = $this->trimmedNextLine ? substr($this->trimmedNextLine, 0, 2) : null;
-
             // blockquote
             $this->quote();
-
-            $mark1  = $this->trimmedLine[0];
-            $mark12 = substr($this->trimmedLine, 0, 2);
 
             if ($this->atx() || $this->setext()) {
                 continue;
