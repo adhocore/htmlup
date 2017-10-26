@@ -42,51 +42,67 @@ class HtmlUpTest extends PHPUnit_Framework_TestCase
             [
                 'Empty',
                 '',
-                ''
+                '',
             ],
             [
                 'Raw html',
                 '<div><span>this is html already</div>',
-                '<div><span>this is html already</div>'
+                '<div><span>this is html already</div>',
             ],
             [
                 'Quotes',
                 "> Here goes a quote\n\n> And another one",
                 '<blockquote><p>Here goes a quote</p></blockquote>' .
-                '<blockquote><p>And another one</p></blockquote>'
+                '<blockquote><p>And another one</p></blockquote>',
             ],
             [
                 'Nested Quotes',
                 "> Main quote\n>> And nested one",
                 '<blockquote><p>Main quote' .
                     '<blockquote><br />And nested one</p></blockquote>' .
-                '</blockquote>'
+                '</blockquote>',
             ],
             [
                 'Setext',
                 "Header2\n---\nHeader1\n===",
-                '<h2>Header2</h2><h1>Header1</h1>'
+                '<h2>Header2</h2><h1>Header1</h1>',
             ],
             [
                 'Atx Header',
-                $this->assemble('# HelloH1', '## HelloH2'),
+                "# HelloH1\n## HelloH2",
                 '<h1>HelloH1</h1><h2>HelloH2</h2>',
             ],
             [
                 'Codes',
                 "```php\n\necho 'HtmlUp rocks';",
-                '<pre><code class="language-php">echo \'HtmlUp rocks\';</code></pre>'
+                '<pre><code class="language-php">echo \'HtmlUp rocks\';</code></pre>',
+            ],
+            [
+                'Code with indent',
+                "    <?php phpinfo();",
+                '<pre><code>&lt;?php phpinfo();</code></pre>',
             ],
             [
                 'Unordered List',
-                $this->assemble('- Hello', '* HelloAgain', '    + DeepHello', '    - DeepHelloAgain'),
-                '<ul><li>Hello</li><li>HelloAgain' .
-                    '<ul><li>DeepHello</li><li>DeepHelloAgain</li></ul>' .
-                '</li></ul>',
+                "- Hello\n* HelloAgain\n    + DeepHello\n    - Deeper\n        - Deepest" .
+                    "\n    - Undeep\n* OutAgain",
+                '<ul>' .
+                    '<li>Hello</li>' .
+                    '<li>HelloAgain' .
+                        '<ul>' .
+                            '<li>DeepHello</li>' .
+                            '<li>Deeper' .
+                                '<ul><li>Deepest</li></ul>' .
+                            '</li>' .
+                            '<li>Undeep</li>' .
+                        '</ul>' .
+                    '</li>' .
+                    '<li>OutAgain</li>' .
+                '</ul>',
             ],
             [
                 'Ordered List',
-                $this->assemble('1. Hello', '2. HelloAgain'),
+                "1. Hello\n2. HelloAgain",
                 '<ol><li>Hello</li><li>HelloAgain</li></ol>',
             ],
             [
@@ -96,30 +112,36 @@ class HtmlUpTest extends PHPUnit_Framework_TestCase
             ],
             [
                 'Horizontal Rule',
-                $this->assemble('', '***', '', '___'),
+                "***\n\n___",
                 '<hr /><hr />',
             ],
             [
                 'Table',
-                $this->assemble('a | b', '---|---', '1 | 2', '4 | 5'),
-                '<table>
-<thead>
-<tr>
-<th>a</th>
-<th>b</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>1</td>
-<td>2</td>
-</tr>
-<tr>
-<td>4</td>
-<td>5</td>
-</tr>
-</tbody>
-</table>',
+                "a | b\n---|---\n1 | 2 | 3\n4 | 5",
+                '<table><thead><tr><th>a</th><th>b</th></tr></thead>' .
+                    '<tbody>' .
+                        '<tr><td>1</td><td>2</td></tr>' .
+                        '<tr><td>4</td><td>5</td></tr>' .
+                    '</tbody>' .
+                '</table>',
+            ],
+            [
+                'Font faces',
+                '**Bold** _em_ `code` __strong__ ~~strike~~',
+                '<p><strong>Bold</strong> <em>em</em> <code>code</code>' .
+                ' <strong>strong</strong> <del>strike</del></p>',
+            ],
+            [
+                'Image',
+                '[![alt](http://imageurl)](https://contenturl)',
+                '<p><a href="https://contenturl"><img src="http://imageurl" alt="alt" /></a></p>',
+            ],
+            [
+                'URLs',
+                "[label](https://link) <http://anotherlink> <mail@localhost>",
+                '<p><a href="https://link">label</a>' .
+                    ' <a href="http://anotherlink">http://anotherlink</a>' .
+                    ' <a href="mailto:mail@localhost">mail@localhost</a></p>',
             ],
         ];
     }
