@@ -4,20 +4,29 @@
 **Concept** - it splits the markdown into lines and parses to markup one by one, finally applies markdown syntaxes on the markup.
 It supports most of the markdown as in [specs](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet "cheatsheet"). 
 
-**Crazy Part:** it is _single class_, _single function_ library, because hey! construct() and toString() are magics 
-
 
 # installation
 
-edit your `composer.json` to include `"adhocore/htmlup": "1.0.*@dev"` in the `require` section and run `composer update`, or run `composer require adhocore/htmlup:1.0.*@dev`
+Run `composer require adhocore/htmlup`
 
 
 # usage
 
 ```php
-require '/path/to/vendor/autoload.php';
+<?php
 
+use Ahc\HtmlUp;
+
+// require '/path/to/vendor/autoload.php';
+
+// Defaults to 4 space indentation.
 echo new Ahc\HtmlUp($markdownText);
+
+// Force 2 space indentation.
+echo new HtmlUp($markdownText, 2);
+
+// Also possible:
+echo (new Htmlup)->parse($markdownText);
 ```
 
 
