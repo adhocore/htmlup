@@ -377,7 +377,7 @@ class HtmlUp
                 ++$this->listLevel;
             }
 
-            $this->markup .= '<li>' . ltrim($this->trimmedLine, '-*0123456789. ');
+            $this->markup .= '<li>' . ltrim($this->trimmedLine, '+-*0123456789. ');
 
             $this->listInternal();
 
