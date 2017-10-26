@@ -113,18 +113,19 @@ class HtmlUp
 
             $this->quote();
 
-            if ($this->atx() || $this->setext() || $this->code() || $this->rule() || $this->listt()) {
-                continue;
-            }
-
-            if ($this->inList) {
-                $this->markup .= $this->trimmedLine;
+            if (($block = $this->isBlock()) || $this->inList) {
+                $this->markup .= $block ? '' : $this->trimmedLine;
 
                 continue;
             }
 
             $this->table() || $this->paragraph();
         }
+    }
+
+    protected function isBlock()
+    {
+        return $this->atx() || $this->setext() || $this->code() || $this->rule() || $this->listt();
     }
 
     protected function init()
@@ -371,7 +372,7 @@ class HtmlUp
 
             if (!$this->inList) {
                 $this->stackList[] = "</$wrapper>";
-                $this->markup .= "\n<$wrapper>\n";
+                $this->markup     .= "\n<$wrapper>\n";
                 $this->inList      = true;
 
                 ++$this->listLevel;
@@ -394,7 +395,7 @@ class HtmlUp
             if ($this->nextIndent > $this->indent) {
                 $this->stackList[] = "</li>\n";
                 $this->stackList[] = "</$wrapper>";
-                $this->markup .= "\n<$wrapper>\n";
+                $this->markup     .= "\n<$wrapper>\n";
 
                 ++$this->listLevel;
             } else {
@@ -459,7 +460,7 @@ class HtmlUp
             ++$this->pointer;
 
             $this->inTable     = true;
-            $this->markup .= "<table>\n<thead>\n<tr>\n";
+            $this->markup     .= "<table>\n<thead>\n<tr>\n";
             $this->trimmedLine = trim($this->trimmedLine, '|');
 
             foreach (explode('|', $this->trimmedLine) as $hdr) {
