@@ -94,7 +94,7 @@ class HtmlUpTest extends PHPUnit_Framework_TestCase
             ],
             [
                 'Code with indent',
-                "    <?php phpinfo();",
+                '    <?php phpinfo();',
                 '<pre><code>&lt;?php phpinfo();</code></pre>',
             ],
             [
@@ -153,7 +153,7 @@ class HtmlUpTest extends PHPUnit_Framework_TestCase
             ],
             [
                 'URLs',
-                "[label](https://link) <http://anotherlink> <mail@localhost>",
+                '[label](https://link) <http://anotherlink> <mail@localhost>',
                 '<p><a href="https://link">label</a>' .
                     ' <a href="http://anotherlink">http://anotherlink</a>' .
                     ' <a href="mailto:mail@localhost">mail@localhost</a></p>',
