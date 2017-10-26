@@ -7,17 +7,32 @@ class HtmlUpTest extends PHPUnit_Framework_TestCase
     /**
      * @dataProvider dataSrc
      */
-    public function testAll()
+    public function testAllWith4spaces($testName, $markdown, $expected)
     {
-        list($testName, $markdown, $expectedMarkup) = func_get_args();
-        $actualMarkup                               = (string) new HtmlUp($markdown);
+        $actualMarkup = (string) new HtmlUp($markdown, 4);
 
-        $this->assertion($testName, $expectedMarkup, $actualMarkup);
+        $this->assertion($testName, $expected, $actualMarkup);
+    }
+
+    /**
+     * @dataProvider dataSrc
+     */
+    public function testAllWith2spaces($testName, $markdown, $expected)
+    {
+        $actualMarkup = (string) new HtmlUp(str_replace('    ', '  ', $markdown), 2);
+
+        $this->assertion($testName, $expected, $actualMarkup);
     }
 
     public function testParseWithArg()
     {
-        $htmlup = new HtmlUp;
+        $htmlup = new HtmlUp('paragraph');
+
+        $this->assertion(
+            'Parse constructor injected markdown',
+            '<p>paragraph</p>',
+            (string) $htmlup
+        );
 
         $this->assertion(
             'Parse the markdown provided in runtime',
