@@ -1,4 +1,12 @@
-# htmlup [![build status](https://travis-ci.org/adhocore/htmlup.svg?branch=master)](https://travis-ci.org/adhocore/htmlup)
+## adhocore/htmlup
+
+[![Latest Version](https://img.shields.io/github/release/adhocore/htmlup.svg?style=flat-square)](https://github.com/adhocore/htmlup/releases)
+[![Travis Build](https://img.shields.io/travis/adhocore/htmlup/master.svg?style=flat-square)](https://travis-ci.org/adhocore/htmlup?branch=master)
+[![Scrutinizer CI](https://img.shields.io/scrutinizer/g/adhocore/htmlup.svg?style=flat-square)](https://scrutinizer-ci.com/g/adhocore/htmlup/?branch=master)
+[![Codecov branch](https://img.shields.io/codecov/c/github/adhocore/htmlup/master.svg?style=flat-square)](https://codecov.io/gh/adhocore/htmlup)
+[![StyleCI](https://styleci.io/repos/20793745/shield)](https://styleci.io/repos/20793745)
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE)
+
 
 `htmlup` is ultra lightweight and uber speedy markdown to html parser written in PHP.
 **Concept** - it splits the markdown into lines and parses to markup one by one, finally applies markdown syntaxes on the markup.
