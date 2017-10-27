@@ -65,16 +65,16 @@ class HtmlUpTest extends PHPUnit_Framework_TestCase
                 '<div><span>this is html already</div>',
             ],
             [
-                'Quotes',
+                'Quotes', // Needs fix
                 "> Here goes a quote\n\n> And another one",
                 '<blockquote><p>Here goes a quote</p></blockquote>' .
                 '<blockquote><p>And another one</p></blockquote>',
             ],
             [
-                'Nested Quotes',
+                'Nested Quotes', // Needs fix
                 "> Main quote\n>> And nested one",
                 '<blockquote><p>Main quote' .
-                    '<blockquote><br />And nested one</p></blockquote>' .
+                    '<blockquote>And nested one</p></blockquote>' .
                 '</blockquote>',
             ],
             [
@@ -179,10 +179,5 @@ class HtmlUpTest extends PHPUnit_Framework_TestCase
         );
 
         return trim($markup);
-    }
-
-    private function assemble()
-    {
-        return implode("\n", func_get_args());
     }
 }

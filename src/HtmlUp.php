@@ -77,7 +77,7 @@ class HtmlUp
         $markdown = str_replace("\t", $this->indentStr, $markdown);
         $markdown = str_replace(["\r\n", "\r"], "\n", $markdown);
 
-        $this->lines = array_merge([''], explode("\n", $markdown), ['']);
+        $this->lines = array_merge(explode("\n", $markdown), ['']);
     }
 
     public function __toString()
@@ -238,18 +238,16 @@ class HtmlUp
         }
 
         while (!empty($this->stackList)) {
-            $this->markup .= array_pop($this->stackList);
+            $this->markup .= array_pop($this->stackList) . "\n";
         }
 
         while (!empty($this->stackBlock)) {
-            $this->markup .= array_pop($this->stackBlock);
+            $this->markup .= array_pop($this->stackBlock) . "\n";
         }
 
         while (!empty($this->stackTable)) {
-            $this->markup .= array_pop($this->stackTable);
+            $this->markup .= array_pop($this->stackTable) . "\n";
         }
-
-        $this->markup .= "\n";
 
         $this->reset(false);
 
@@ -322,7 +320,7 @@ class HtmlUp
                 ? ' class="language-' . $codeMatch[1] . '"'
                 : '';
 
-            $this->markup .= "\n<pre><code{$lang}>";
+            $this->markup .= "\n<pre>\n<code{$lang}>";
 
             if (!$codeBlock) {
                 $this->markup .= $this->escape(substr($this->line, $this->indentLen));
@@ -332,7 +330,7 @@ class HtmlUp
 
             ++$this->pointer;
 
-            $this->markup .= '</code></pre>';
+            $this->markup .= "</code>\n</pre>";
 
             return true;
         }
@@ -340,16 +338,20 @@ class HtmlUp
 
     public function codeInternal($codeBlock)
     {
+        $first = true;
+
         while (isset($this->lines[$this->pointer + 1])) {
             $this->line = $this->escape($this->lines[$this->pointer + 1]);
 
             if (($codeBlock && substr(ltrim($this->line), 0, 3) !== '```')
                 || strpos($this->line, $this->indentStr) === 0
             ) {
-                $this->markup .= "\n"; // @todo: donot use \n for first line
+                $this->markup .= $first ? '' : "\n";
                 $this->markup .= $codeBlock ? $this->line : substr($this->line, $this->indentLen);
 
                 ++$this->pointer;
+
+                $first = false;
             } else {
                 break;
             }
@@ -375,9 +377,10 @@ class HtmlUp
             $wrapper = $isUl ? 'ul' : 'ol';
 
             if (!$this->inList) {
-                $this->stackList[] = "</$wrapper>";
-                $this->markup     .= "\n<$wrapper>\n";
                 $this->inList      = true;
+                $this->stackList[] = "</$wrapper>";
+
+                $this->markup .= "\n<$wrapper>\n";
 
                 ++$this->listLevel;
             }
@@ -399,7 +402,8 @@ class HtmlUp
             if ($this->nextIndent > $this->indent) {
                 $this->stackList[] = "</li>\n";
                 $this->stackList[] = "</$wrapper>";
-                $this->markup     .= "\n<$wrapper>\n";
+
+                $this->markup .= "\n<$wrapper>\n";
 
                 ++$this->listLevel;
             } else {
@@ -439,7 +443,8 @@ class HtmlUp
                 break;
             }
 
-            $col           = trim($col);
+            $col = trim($col);
+
             $this->markup .= "<td>{$col}</td>\n";
         }
 
@@ -464,8 +469,9 @@ class HtmlUp
             ++$this->pointer;
 
             $this->inTable     = true;
-            $this->markup     .= "<table>\n<thead>\n<tr>\n";
             $this->trimmedLine = trim($this->trimmedLine, '|');
+
+            $this->markup .= "\n<table>\n<thead>\n<tr>\n";
 
             foreach (explode('|', $this->trimmedLine) as $hdr) {
                 $this->markup .= '<th>' . trim($hdr) . "</th>\n";
@@ -479,7 +485,7 @@ class HtmlUp
 
     protected function paragraph()
     {
-        $this->markup .= $this->inPara ? "\n<br />" : "\n<p>";
+        $this->markup .= $this->inPara ? "\n" : "\n<p>";
         $this->markup .= $this->trimmedLine;
 
         if (empty($this->trimmedNextLine)) {
