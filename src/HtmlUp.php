@@ -279,7 +279,7 @@ class HtmlUp
 
                 $this->stackBlock[] = "\n</blockquote>";
 
-                ++$this->quoteLevel;
+                $this->quoteLevel++;
             }
 
             return $this->inQuote = true;
@@ -306,7 +306,7 @@ class HtmlUp
 
             $this->markup .= "\n<h{$level}>{$this->trimmedLine}</h{$level}>";
 
-            ++$this->pointer;
+            $this->pointer++;
 
             return true;
         }
@@ -330,7 +330,7 @@ class HtmlUp
 
             $this->codeInternal($codeBlock);
 
-            ++$this->pointer;
+            $this->pointer++;
 
             $this->markup .= '</code></pre>';
 
@@ -349,7 +349,7 @@ class HtmlUp
                 $this->markup .= "\n"; // @todo: donot use \n for first line
                 $this->markup .= $codeBlock ? $this->line : substr($this->line, $this->indentLen);
 
-                ++$this->pointer;
+                $this->pointer++;
             } else {
                 break;
             }
@@ -376,10 +376,10 @@ class HtmlUp
 
             if (!$this->inList) {
                 $this->stackList[] = "</$wrapper>";
-                $this->markup     .= "\n<$wrapper>\n";
+                $this->markup .= "\n<$wrapper>\n";
                 $this->inList      = true;
 
-                ++$this->listLevel;
+                $this->listLevel++;
             }
 
             $this->markup .= '<li>' . ltrim($this->trimmedLine, '+-*0123456789. ');
@@ -399,9 +399,9 @@ class HtmlUp
             if ($this->nextIndent > $this->indent) {
                 $this->stackList[] = "</li>\n";
                 $this->stackList[] = "</$wrapper>";
-                $this->markup     .= "\n<$wrapper>\n";
+                $this->markup .= "\n<$wrapper>\n";
 
-                ++$this->listLevel;
+                $this->listLevel++;
             } else {
                 $this->markup .= "</li>\n";
             }
@@ -461,10 +461,10 @@ class HtmlUp
         $columnCount = preg_match_all(static::RE_MD_TCOL, trim($this->trimmedNextLine, '|'));
 
         if ($headerCount > 0 && $headerCount <= $columnCount) {
-            ++$this->pointer;
+            $this->pointer++;
 
             $this->inTable     = true;
-            $this->markup     .= "<table>\n<thead>\n<tr>\n";
+            $this->markup .= "<table>\n<thead>\n<tr>\n";
             $this->trimmedLine = trim($this->trimmedLine, '|');
 
             foreach (explode('|', $this->trimmedLine) as $hdr) {
