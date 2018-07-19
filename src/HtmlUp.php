@@ -13,13 +13,10 @@ namespace Ahc;
  */
 class HtmlUp
 {
-    const RE_URL       = '~<(https?:[\/]{2}[^\s]+?)>~';
-    const RE_RAW       = '/^<\/?\w.*?\/?>/';
-    const RE_EMAIL     = '~<(\S+?@\S+?)>~';
-    const RE_MD_IMG    = '~!\[(.+?)\]\s*\((.+?)\s*(".+?")?\)~';
-    const RE_MD_URL    = '~\[(.+?)\]\s*\((.+?)\s*(".+?")?\)~';
-    const RE_MD_FONT   = '!(\*{1,2}|_{1,2}|`|~~)(.+?)\\1!';
+    use HtmlHelper;
+
     const RE_MD_QUOTE  = '~^\s*(>+)\s+~';
+    const RE_RAW       = '/^<\/?\w.*?\/?>/';
     const RE_MD_SETEXT = '~^\s*(={3,}|-{3,})\s*$~';
     const RE_MD_CODE   = '/^```\s*([\w-]+)?/';
     const RE_MD_RULE   = '~^(_{3,}|\*{3,}|\-{3,})$~';
@@ -85,6 +82,14 @@ class HtmlUp
         return $this->parse();
     }
 
+    /**
+     * Parse markdown.
+     *
+     * @param string  $markdown
+     * @param int     $indentWidth
+     *
+     * @return string
+     */
     public function parse($markdown = \null, $indentWidth = 4)
     {
         if (\null !== $markdown) {
@@ -98,9 +103,8 @@ class HtmlUp
         }
 
         $this->parseBlockElements();
-        $this->parseSpanElements();
 
-        return $this->markup;
+        return (new SpanElementParser)->parse($this->markup);
     }
 
     protected function parseBlockElements()
@@ -142,83 +146,6 @@ class HtmlUp
             : '';
         $this->trimmedNextLine = \trim($this->nextLine);
         $this->nextIndent      = \strlen($this->nextLine) - \strlen(\ltrim($this->nextLine));
-    }
-
-    protected function parseSpanElements()
-    {
-        $this->links();
-
-        $this->anchors();
-
-        $this->spans();
-    }
-
-    protected function links()
-    {
-        // URLs.
-        $this->markup = \preg_replace(
-            static::RE_URL,
-            '<a href="$1">$1</a>',
-            $this->markup
-        );
-
-        // Emails.
-        $this->markup = \preg_replace(
-            static::RE_EMAIL,
-            '<a href="mailto:$1">$1</a>',
-            $this->markup
-        );
-    }
-
-    protected function anchors()
-    {
-        // Images.
-        $this->markup = \preg_replace_callback(static::RE_MD_IMG, function ($img) {
-            $title = isset($img[3]) ? " title={$img[3]} " : '';
-            $alt   = $img[1] ? " alt=\"{$img[1]}\" " : '';
-
-            return "<img src=\"{$img[2]}\"{$title}{$alt}/>";
-        }, $this->markup);
-
-        // Anchors.
-        $this->markup = \preg_replace_callback(static::RE_MD_URL, function ($a) {
-            $title = isset($a[3]) ? " title={$a[3]} " : '';
-
-            return "<a href=\"{$a[2]}\"{$title}>{$a[1]}</a>";
-        }, $this->markup);
-    }
-
-    protected function spans()
-    {
-        // em/code/strong/del
-        $this->markup = \preg_replace_callback(static::RE_MD_FONT, function ($em) {
-            switch (\substr($em[1], 0, 2)) {
-                case  '**':
-                case '__':
-                    $tag = 'strong';
-                    break;
-
-                case '~~':
-                    $tag = 'del';
-                    break;
-
-                case $em[1] === '*':
-                case $em[1] === '_':
-                    $tag = 'em';
-                    break;
-
-                default:
-                    $tag = 'code';
-                    $em[2] = $this->escape($em[2]);
-            }
-
-            return "<$tag>{$em[2]}</$tag>";
-        }, $this->markup);
-    }
-
-    protected function escape($input)
-    {
-        return \htmlspecialchars($input);
     }
 
     protected function reset($all = \false)
