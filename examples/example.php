@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the HTMLUP package.
+ *
+ * (c) Jitendra Adhikari <jiten.adhikary@gmail.com>
+ *     <https//:github.com/adhocore>
+ *
+ * Licensed under MIT license.
+ */
+
 use Ahc\HtmlUp;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
