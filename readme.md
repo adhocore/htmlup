@@ -10,7 +10,7 @@
 
 `htmlup` is ultra lightweight and uber speedy markdown to html parser written in PHP.
 **Concept** - it splits the markdown into lines and parses to markup one by one, finally applies markdown syntaxes on the markup.
-It supports most of the markdown as in [specs](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet "cheatsheet"). 
+It supports most of the markdown as in [specs](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet "cheatsheet").
 
 
 # installation
@@ -44,9 +44,9 @@ echo (new Htmlup)->parse($markdownText);
 
 It provides limited support to deep nested elements, supported items are:
 
-- lists inside lists 
-- blockquotes inside blockcodes 
-- lists inside blockquotes 
+- lists inside lists
+- blockquotes inside blockcodes
+- lists inside blockquotes
 
 ## raw html
 
@@ -58,7 +58,7 @@ you can throw in your raw html but with a blank line at start and end to delimit
   <dt>
   	A
   </dt>
-  <dd>Apple 
+  <dd>Apple
   	</dd>
   	<dt>B
   </dt>
@@ -87,12 +87,6 @@ a | b | c
  4| 5 | 6
 
 
-# copyright and licence
-
-- &copy; 2014 Jitendra Adhikari
-- licence: WTFPL
-
-
 # todo
 
 - make robust, and provide full support of spec
@@ -100,10 +94,12 @@ a | b | c
 - **markdown extra** however, is _not planned_ :(
 
 
-# contribution
+## contributing
 
 - fork and pull request for patch/fix
 - create issue for _breaking_ bugs and severe markdown spec violation
+- please check [the guide](./CONTRIBUTING.md)
 
+## license
 
-that's all folks !
+> &copy; [MIT](./LICENSE) | 2014-2018, Jitendra Adhikari
