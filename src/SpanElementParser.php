@@ -76,7 +76,7 @@ class SpanElementParser
         // em/code/strong/del
         return \preg_replace_callback(static::RE_MD_FONT, function ($em) {
             switch (\substr($em[1], 0, 2)) {
-                case  '**':
+                case '**':
                 case '__':
                     $tag = 'strong';
                     break;
