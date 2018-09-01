@@ -78,7 +78,7 @@ abstract class BlockElementParser
 
     protected function atx()
     {
-        if (isset($this->trimmedLine[0]) && $this->trimmedLine[0] === '#') {
+        if (\substr($this->trimmedLine, 0, 1) === '#') {
             $level = \strlen($this->trimmedLine) - \strlen(\ltrim($this->trimmedLine, '#'));
             $head  = $this->h($level, $this->trimmedLine);
 
@@ -105,11 +105,7 @@ abstract class BlockElementParser
         $codeBlock = \preg_match(static::RE_MD_CODE, $this->line, $codeMatch);
 
         if ($codeBlock || (!$this->inList && !$this->inQuote && $isShifted)) {
-            $lang = isset($codeMatch[1])
-                ? ' class="language-' . $codeMatch[1] . '"'
-                : '';
-
-            $this->markup .= "\n<pre><code{$lang}>";
+            $this->markup .= $this->codeStart($codeMatch);
 
             if (!$codeBlock) {
                 $this->markup .= $this->escape(\substr($this->line, $this->indentLen));

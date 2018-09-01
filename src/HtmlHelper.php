@@ -31,6 +31,15 @@ trait HtmlHelper
         return '';
     }
 
+    public function codeStart($lang)
+    {
+        $lang = isset($lang[1])
+            ? ' class="language-' . $lang[1] . '"'
+            : '';
+
+        return "\n<pre><code{$lang}>";
+    }
+
     public function tableStart($line, $delim = '|')
     {
         $table = "<table>\n<thead>\n<tr>\n";
