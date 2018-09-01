@@ -4,7 +4,7 @@
     "keywords": ["htmlup", "markdown"],
     "homepage": "https://github.com/adhocore/htmlup",
     "type": "library",
-    "license": "WTFPL",
+    "license": "MIT",
     "authors": [
         {
             "name": "Jitendra Adhikari",
