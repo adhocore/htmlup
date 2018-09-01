@@ -129,8 +129,7 @@ abstract class BlockElementParser
             if (($codeBlock && \substr(\ltrim($this->line), 0, 3) !== '```')
                 || \strpos($this->line, $this->indentStr) === 0
             ) {
-                $this->markup .= "\n"; // @todo: donot use \n for first line
-                $this->markup .= $codeBlock ? $this->line : \substr($this->line, $this->indentLen);
+                $this->markup .= $this->codeLine($this->line, $codeBlock, $this->indentLen);
 
                 $this->pointer++;
 
@@ -143,13 +142,9 @@ abstract class BlockElementParser
 
     protected function rule()
     {
-        if ($this->trimmedPrevLine === ''
-            && \preg_match(static::RE_MD_RULE, $this->trimmedLine)
-        ) {
-            $this->markup .= "\n<hr />";
+        $this->markup .= $hr = $this->hr($this->trimmedPrevLine, $this->trimmedLine);
 
-            return \true;
-        }
+        return (bool) $hr;
     }
 
     protected function listt()

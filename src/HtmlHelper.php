@@ -31,6 +31,13 @@ trait HtmlHelper
         return '';
     }
 
+    public function hr($prevLine, $line)
+    {
+        if ($prevLine === '' && \preg_match(BlockElementParser::RE_MD_RULE, $line)) {
+            return "\n<hr />";
+        }
+    }
+
     public function codeStart($lang)
     {
         $lang = isset($lang[1])
@@ -38,6 +45,14 @@ trait HtmlHelper
             : '';
 
         return "\n<pre><code{$lang}>";
+    }
+
+    public function codeLine($line, $isBlock, $indentLen = 4)
+    {
+        $code  = "\n"; // @todo: donot use \n for first line
+        $code .= $isBlock ? $line : \substr($line, $indentLen);
+
+        return $code;
     }
 
     public function tableStart($line, $delim = '|')
