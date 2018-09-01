@@ -50,7 +50,85 @@ abstract class BlockElementParser
     protected $inHtml  = \false;
     protected $inTable = \false;
 
-    public function codeInternal($codeBlock)
+    protected function parseBlockElements()
+    {
+        while (isset($this->lines[++$this->pointer])) {
+            $this->init();
+
+            if ($this->flush() || $this->raw()) {
+                continue;
+            }
+
+            $this->quote();
+
+            if (($block = $this->isBlock()) || $this->inList) {
+                $this->markup .= $block ? '' : $this->trimmedLine;
+
+                continue;
+            }
+
+            $this->table() || $this->paragraph();
+        }
+    }
+
+    protected function isBlock()
+    {
+        return $this->atx() || $this->setext() || $this->code() || $this->rule() || $this->listt();
+    }
+
+    protected function atx()
+    {
+        if (isset($this->trimmedLine[0]) && $this->trimmedLine[0] === '#') {
+            $level = \strlen($this->trimmedLine) - \strlen(\ltrim($this->trimmedLine, '#'));
+
+            if ($level < 7) {
+                $this->markup .= "\n<h{$level}>" . \ltrim(\ltrim($this->trimmedLine, '# ')) . "</h{$level}>";
+
+                return \true;
+            }
+        }
+    }
+
+    protected function setext()
+    {
+        if (\preg_match(static::RE_MD_SETEXT, $this->nextLine)) {
+            $level = \trim($this->nextLine, '- ') === '' ? 2 : 1;
+
+            $this->markup .= "\n<h{$level}>{$this->trimmedLine}</h{$level}>";
+
+            $this->pointer++;
+
+            return \true;
+        }
+    }
+
+    protected function code()
+    {
+        $isShifted = ($this->indent - $this->nextIndent) >= $this->indentLen;
+        $codeBlock = \preg_match(static::RE_MD_CODE, $this->line, $codeMatch);
+
+        if ($codeBlock || (!$this->inList && !$this->inQuote && $isShifted)) {
+            $lang = isset($codeMatch[1])
+                ? ' class="language-' . $codeMatch[1] . '"'
+                : '';
+
+            $this->markup .= "\n<pre><code{$lang}>";
+
+            if (!$codeBlock) {
+                $this->markup .= $this->escape(\substr($this->line, $this->indentLen));
+            }
+
+            $this->codeInternal($codeBlock);
+
+            $this->pointer++;
+
+            $this->markup .= '</code></pre>';
+
+            return \true;
+        }
+    }
+
+    private function codeInternal($codeBlock)
     {
         while (isset($this->lines[$this->pointer + 1])) {
             $this->line = $this->escape($this->lines[$this->pointer + 1]);
@@ -68,7 +146,41 @@ abstract class BlockElementParser
         }
     }
 
-    protected function listInternal()
+    protected function rule()
+    {
+        if ($this->trimmedPrevLine === ''
+            && \preg_match(static::RE_MD_RULE, $this->trimmedLine)
+        ) {
+            $this->markup .= "\n<hr />";
+
+            return \true;
+        }
+    }
+
+    protected function listt()
+    {
+        $isUl = \in_array(\substr($this->trimmedLine, 0, 2), ['- ', '* ', '+ ']);
+
+        if ($isUl || \preg_match(static::RE_MD_OL, $this->trimmedLine)) {
+            $wrapper = $isUl ? 'ul' : 'ol';
+
+            if (!$this->inList) {
+                $this->stackList[] = "</$wrapper>";
+                $this->markup .= "\n<$wrapper>\n";
+                $this->inList      = \true;
+
+                $this->listLevel++;
+            }
+
+            $this->markup .= '<li>' . \ltrim($this->trimmedLine, '+-*0123456789. ');
+
+            $this->listInternal();
+
+            return \true;
+        }
+    }
+
+    private function listInternal()
     {
         $isUl = \in_array(\substr($this->trimmedNextLine, 0, 2), ['- ', '* ', '+ ']);
 
@@ -100,7 +212,41 @@ abstract class BlockElementParser
         }
     }
 
-    protected function tableInternal($headerCount)
+    protected function table()
+    {
+        static $headerCount = 0;
+
+        if (!$this->inTable) {
+            $headerCount = \substr_count(\trim($this->trimmedLine, '|'), '|');
+
+            return $this->tableInternal($headerCount);
+        }
+
+        $this->markup .= "<tr>\n";
+
+        foreach (\explode('|', \trim($this->trimmedLine, '|')) as $i => $col) {
+            if ($i > $headerCount) {
+                break;
+            }
+
+            $col           = \trim($col);
+            $this->markup .= "<td>{$col}</td>\n";
+        }
+
+        $this->markup .= "</tr>\n";
+
+        if (empty($this->trimmedNextLine)
+            || !\substr_count(\trim($this->trimmedNextLine, '|'), '|')
+        ) {
+            $headerCount        = 0;
+            $this->inTable      = \false;
+            $this->stackTable[] = "</tbody>\n</table>";
+        }
+
+        return \true;
+    }
+
+    private function tableInternal($headerCount)
     {
         $columnCount = \preg_match_all(static::RE_MD_TCOL, \trim($this->trimmedNextLine, '|'));
 
