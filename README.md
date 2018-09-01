@@ -102,4 +102,4 @@ a | b | c
 
 ## license
 
-> &copy; [MIT](./LICENSE) | 2014-2018, Jitendra Adhikari
+> &copy; 2014-2018 | **Jitendra Adhikari** | [MIT](./LICENSE)
