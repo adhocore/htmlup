@@ -1,3 +1,10 @@
+## [0.2.0] 2018-09-01 03:09:19 UTC
+
+- [87d4564](https://github.com/adhocore/htmlup/commit/87d4564) refactor:reorganize things (Jitendra Adhikari)
+- [d2040a7](https://github.com/adhocore/htmlup/commit/d2040a7) refactor: cleanup stuffs, move to block parser (Jitendra Adhikari)
+- [68cef7d](https://github.com/adhocore/htmlup/commit/68cef7d) feat: add block element parser (Jitendra Adhikari)
+- [cd7e67d](https://github.com/adhocore/htmlup/commit/cd7e67d) chore: license (Jitendra Adhikari)
+
 ## [v0.1.0] 2018-08-31 15:08:34 UTC
 
 - [84d3918](https://github.com/adhocore/htmlup/commit/84d3918) docs: readme > README (Jitendra Adhikari)
@@ -14,5 +21,3 @@
 - [acfdd14](https://github.com/adhocore/htmlup/commit/acfdd14) Test enhancement (peter279k)
 - [1903710](https://github.com/adhocore/htmlup/commit/1903710) doc: badges are cool (Jitendra Adhikari)
 - [47ef9c8](https://github.com/adhocore/htmlup/commit/47ef9c8) doc: update readme (Jitendra Adhikari)
-
-
