@@ -1,3 +1,9 @@
+## [0.2.1] 2018-09-01 04:09:30 UTC
+
+- [53f582c](https://github.com/adhocore/htmlup/commit/53f582c) refactor: extract codeline, hr to helper (Jitendra Adhikari)
+- [25b90f1](https://github.com/adhocore/htmlup/commit/25b90f1) refactor: extract to helper (Jitendra Adhikari)
+- [fd2f3ad](https://github.com/adhocore/htmlup/commit/fd2f3ad) refactor: extract header, table, tr logic to helper (Jitendra Adhikari)
+
 ## [0.2.0] 2018-09-01 03:09:19 UTC
 
 - [87d4564](https://github.com/adhocore/htmlup/commit/87d4564) refactor:reorganize things (Jitendra Adhikari)
