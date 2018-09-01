@@ -80,21 +80,18 @@ abstract class BlockElementParser
     {
         if (isset($this->trimmedLine[0]) && $this->trimmedLine[0] === '#') {
             $level = \strlen($this->trimmedLine) - \strlen(\ltrim($this->trimmedLine, '#'));
+            $head  = $this->h($level, $this->trimmedLine);
 
-            if ($level < 7) {
-                $this->markup .= "\n<h{$level}>" . \ltrim(\ltrim($this->trimmedLine, '# ')) . "</h{$level}>";
+            $this->markup .= $head;
 
-                return \true;
-            }
+            return (bool) $head;
         }
     }
 
     protected function setext()
     {
         if (\preg_match(static::RE_MD_SETEXT, $this->nextLine)) {
-            $level = \trim($this->nextLine, '- ') === '' ? 2 : 1;
-
-            $this->markup .= "\n<h{$level}>{$this->trimmedLine}</h{$level}>";
+            $this->markup .= $this->h($this->nextLine, $this->trimmedLine);
 
             $this->pointer++;
 
@@ -140,9 +137,11 @@ abstract class BlockElementParser
                 $this->markup .= $codeBlock ? $this->line : \substr($this->line, $this->indentLen);
 
                 $this->pointer++;
-            } else {
-                break;
+
+                continue;
             }
+
+            break;
         }
     }
 
@@ -166,8 +165,9 @@ abstract class BlockElementParser
 
             if (!$this->inList) {
                 $this->stackList[] = "</$wrapper>";
+
                 $this->markup .= "\n<$wrapper>\n";
-                $this->inList      = \true;
+                $this->inList  = \true;
 
                 $this->listLevel++;
             }
@@ -222,18 +222,7 @@ abstract class BlockElementParser
             return $this->tableInternal($headerCount);
         }
 
-        $this->markup .= "<tr>\n";
-
-        foreach (\explode('|', \trim($this->trimmedLine, '|')) as $i => $col) {
-            if ($i > $headerCount) {
-                break;
-            }
-
-            $col           = \trim($col);
-            $this->markup .= "<td>{$col}</td>\n";
-        }
-
-        $this->markup .= "</tr>\n";
+        $this->markup .= $this->tableRow($this->trimmedLine, $headerCount);
 
         if (empty($this->trimmedNextLine)
             || !\substr_count(\trim($this->trimmedNextLine, '|'), '|')
@@ -254,14 +243,7 @@ abstract class BlockElementParser
             $this->pointer++;
 
             $this->inTable = \true;
-            $this->markup .= "<table>\n<thead>\n<tr>\n";
-            $this->trimmedLine = \trim($this->trimmedLine, '|');
-
-            foreach (\explode('|', $this->trimmedLine) as $hdr) {
-                $this->markup .= '<th>' . \trim($hdr) . "</th>\n";
-            }
-
-            $this->markup .= "</tr>\n</thead>\n<tbody>\n";
+            $this->markup .= $this->tableStart($this->trimmedLine);
 
             return \true;
         }
