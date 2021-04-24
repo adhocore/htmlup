@@ -6,6 +6,8 @@
 [![Codecov branch](https://img.shields.io/codecov/c/github/adhocore/htmlup/master.svg?style=flat-square)](https://codecov.io/gh/adhocore/htmlup)
 [![StyleCI](https://styleci.io/repos/20793745/shield)](https://styleci.io/repos/20793745)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE)
+[![Donate](https://img.shields.io/badge/donate-paypal-blue.svg?style=flat-square)](https://www.paypal.me/ji10/50usd)
+[![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Lightweight+and+fast+markdown+to+HTML+parser+for+PHP&url=https://github.com/adhocore/htmlup&hashtags=php,markdown,markdownparser,phpmarkdown)
 
 
 `htmlup` is ultra lightweight and uber speedy markdown to html parser written in PHP.
