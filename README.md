@@ -6,7 +6,9 @@
 [![Codecov branch](https://img.shields.io/codecov/c/github/adhocore/htmlup/master.svg?style=flat-square)](https://codecov.io/gh/adhocore/htmlup)
 [![StyleCI](https://styleci.io/repos/20793745/shield)](https://styleci.io/repos/20793745)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE)
-[![Donate](https://img.shields.io/badge/donate-paypal-blue.svg?style=flat-square)](https://www.paypal.me/ji10/50usd)
+[![Donate 15](https://img.shields.io/badge/donate-paypal-blue.svg?style=flat-square&label=donate+15)](https://www.paypal.me/ji10/15usd)
+[![Donate 25](https://img.shields.io/badge/donate-paypal-blue.svg?style=flat-square&label=donate+25)](https://www.paypal.me/ji10/25usd)
+[![Donate 50](https://img.shields.io/badge/donate-paypal-blue.svg?style=flat-square&label=donate+50)](https://www.paypal.me/ji10/50usd)
 [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Lightweight+and+fast+markdown+to+HTML+parser+for+PHP&url=https://github.com/adhocore/htmlup&hashtags=php,markdown,markdownparser,phpmarkdown)
 
 
