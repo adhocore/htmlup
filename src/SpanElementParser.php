@@ -91,7 +91,7 @@ class SpanElementParser
                     break;
 
                 default:
-                    $tag = 'code';
+                    $tag   = 'code';
                     $em[2] = $this->escape($em[2]);
             }
 
